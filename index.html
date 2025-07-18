@@ -1432,9 +1432,7 @@
 
   <script>
     // MODIFICAÇÃO: Alterando para usar a API do Google Sheets que permite obter metadados de formatação
-    const sheetId = "1vTsLoHEPL1FQ4XbSL19nvdF1yARqiFG2nWcO028obh9lRbbGohcBz7EhubyN74dwrcIh5sgk0LLDBob";
-    const csvUrl = `https://docs.google.com/spreadsheets/d/e/2PACX-${sheetId}/pub?output=csv`;
-    const sheetsApiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A1:Z1000?key=AIzaSyBpMHuTKlUOCzWjGQQQQQQQQQQQQQQQQQQ`; // Placeholder - seria necessária uma API key real
+const sheetUrl = '/api/get-sheet-data';
     
     const TELEGRAM_TOKEN = "8159700040:AAFm7Pe8c4jOfGpChVEvPIyEhl_mrUzjcIs";
     const TELEGRAM_ID = "7837939072";
