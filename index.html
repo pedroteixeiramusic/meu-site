@@ -1728,15 +1728,18 @@ const sheetUrl = '/api/get-sheet-data';
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout (melhorado)
           
-          const response = await fetch(csvUrl, {
-            signal: controller.signal,
-            cache: 'no-cache',
-            headers: {
-              'Cache-Control': 'no-cache',
-              'Pragma': 'no-cache'
-            }
-          });
-          
+// VERSÃO CORRIGIDA
+const response = await fetch(sheetUrl, {
+  method: 'GET', // O método da requisição
+  signal: controller.signal, // Para o controle de timeout
+  cache: 'no-cache', // Para não usar o cache do navegador
+  headers: {
+    'Cache-Control': 'no-cache',
+    'Pragma': 'no-cache'
+  }
+});
+// FIM DA VERSÃO CORRIGIDA
+
           clearTimeout(timeoutId);
           
           if (!response.ok) {
