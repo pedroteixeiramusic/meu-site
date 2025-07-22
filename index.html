@@ -248,6 +248,26 @@
       box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
     }
     
+    /* ALTERAÇÃO 1: Estilo para botão desabilitado */
+    .btn-principal:disabled {
+      background: linear-gradient(135deg, #3a3a3a, #2a2a2a);
+      color: #888;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      border: 1px solid #555;
+    }
+    
+    .btn-principal:disabled:hover {
+      background: linear-gradient(135deg, #3a3a3a, #2a2a2a);
+      transform: none;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .btn-principal:disabled::before {
+      display: none;
+    }
+    
     .btn-instagram {
       background: rgba(30, 30, 30, 0.7);
       color: var(--color-text-secondary);
@@ -391,6 +411,11 @@
       justify-content: space-between;
       align-items: center;
       padding-left: 15px;
+    }
+    
+    /* ALTERAÇÃO 2: Reduzir tamanho da fonte dos nomes das músicas */
+    .musica-item span {
+      font-size: 0.9em;
     }
     
     input, textarea, select {
@@ -1274,7 +1299,8 @@
       </svg>
       <a href="https://www.instagram.com/pedroteixeiramusic?igsh=NGx1dmo3cHc4YzMw&utm_source=qr" target="_blank">@pedroteixeiramusic</a>
     </button><br>
-    <button class="btn-principal" onclick="mostrarCategorias()">Pedir música</button>
+    <!-- ALTERAÇÃO 1: Botão "Pedir música" agora começa desabilitado -->
+    <button id="btnPedirMusica" class="btn-principal" onclick="mostrarCategorias()" disabled>Pedir música</button>
   </div>
 
   <div id="listaCategorias" style="display:none;" class="container">
@@ -1631,6 +1657,13 @@ const sheetUrl = '/api/get-sheet-data';
       categorias = [...new Set(dadosRaw.map(item => item.categoria))];
       dadosCarregados = true;
       ultimaAtualizacao = Date.now();
+      
+      // ALTERAÇÃO 1: Habilitar o botão "Pedir música" após carregar as categorias
+      const btnPedirMusica = document.getElementById('btnPedirMusica');
+      if (btnPedirMusica) {
+        btnPedirMusica.disabled = false;
+        console.log('Botão "Pedir música" habilitado após carregamento das categorias');
+      }
     }
 
     // Função para verificar status do site
