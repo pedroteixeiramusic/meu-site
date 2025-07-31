@@ -2046,55 +2046,49 @@ try {
     })
   });
 
-  // Verificar se a resposta HTTP foi bem-sucedida
   if (!response.ok) {
     throw new Error(`Erro HTTP: ${response.status}`);
   }
 
-  // Verificar se a resposta da API do Telegram indica sucesso
   const responseJson = await response.json();
   if (!responseJson.ok) {
     throw new Error(`Erro da API do Telegram: ${responseJson.description || 'Erro desconhecido'}`);
   }
-}
-       
-        // Se chegou até aqui, o envio foi bem-sucedido
-        console.log('Pedido enviado com sucesso!');
-        
-        // Mostrar tela de confirmação
-        document.getElementById("formularioPedido").style.display = "none";
-        document.getElementById("confirmacao").style.display = "block";
-        
-        const tituloConfirmacao = document.querySelector("#confirmacao h2");
 
-        // Se há gorjeta, mostrar PIX e ocultar o botão de voltar para a página inicial
-        if (gorjeta === "outro") {
-          tituloConfirmacao.textContent = "Tá quase lá...";
-          document.getElementById("pixContainer").style.display = "block";
-          document.getElementById("chavePix").value = CHAVES_PIX["outro"];
-          document.getElementById("btnVoltarInicio").style.display = "none";
-        } else if (valorGorjeta > 0) {
-          tituloConfirmacao.textContent = "Tá quase lá...";
-          document.getElementById("pixContainer").style.display = "block";
-          document.getElementById("chavePix").value = CHAVES_PIX[valorGorjeta];
-          document.getElementById("btnVoltarInicio").style.display = "none";
-        } else {
-          tituloConfirmacao.textContent = "Pedido enviado com sucesso!🎤🎶";
-          document.getElementById("pixContainer").style.display = "none";
-          document.getElementById("btnVoltarInicio").style.display = "block";
-        }
-        
-      } catch (error) {
-        console.error('Erro ao enviar pedido:', error);
-        
-        // Mostrar mensagem de erro para o usuário
-        alert("❌ Não foi possível enviar o pedido. Verifique sua conexão e tente novamente.");
-      } finally {
-        // Restaurar botão independente do resultado
-        botaoEnviar.disabled = false;
-        botaoEnviar.textContent = textoOriginalBotao;
-        enviandoPedido = false;
-      }
+  // Se chegou até aqui, o envio foi bem-sucedido
+  console.log('Pedido enviado com sucesso!');
+
+  // Mostrar tela de confirmação
+  document.getElementById("formularioPedido").style.display = "none";
+  document.getElementById("confirmacao").style.display = "block";
+
+  const tituloConfirmacao = document.querySelector("#confirmacao h2");
+
+  if (gorjeta === "outro") {
+    tituloConfirmacao.textContent = "Tá quase lá...";
+    document.getElementById("pixContainer").style.display = "block";
+    document.getElementById("chavePix").value = CHAVES_PIX["outro"];
+    document.getElementById("btnVoltarInicio").style.display = "none";
+  } else if (valorGorjeta > 0) {
+    tituloConfirmacao.textContent = "Tá quase lá...";
+    document.getElementById("pixContainer").style.display = "block";
+    document.getElementById("chavePix").value = CHAVES_PIX[valorGorjeta];
+    document.getElementById("btnVoltarInicio").style.display = "none";
+  } else {
+    tituloConfirmacao.textContent = "Pedido enviado com sucesso!🎤🎶";
+    document.getElementById("pixContainer").style.display = "none";
+    document.getElementById("btnVoltarInicio").style.display = "block";
+  }
+
+} catch (error) {
+  console.error('Erro ao enviar pedido:', error);
+  alert("❌ Não foi possível enviar o pedido. Verifique sua conexão e tente novamente.");
+} finally {
+  botaoEnviar.disabled = false;
+  botaoEnviar.textContent = textoOriginalBotao;
+  enviandoPedido = false;
+}
+
     }
 
     function copiarPixConfirmacao() {
