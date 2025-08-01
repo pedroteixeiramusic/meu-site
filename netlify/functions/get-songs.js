@@ -24,7 +24,8 @@ exports.handler = async (event, context) => {
     // Buscar dados (mesmo processo da API de categorias)
     const SHEET_URL = process.env.GOOGLE_SHEETS_URL || '/api/get-sheet-data';
     
-    const response = await fetch(`${event.headers.host}${SHEET_URL}`, {
+const SITE_URL = `https://${event.headers.host}`;
+const response = await fetch(`${SITE_URL}/api/get-sheet-data`, {
       headers: { 'User-Agent': 'Netlify-Function' }
     });
     
