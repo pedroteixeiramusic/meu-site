@@ -1651,7 +1651,7 @@ const sheetUrl = '/api/get-sheet-data';
       return null;
     }
 
-    // Função para processar dados (seja do dados ou fallback)
+    // Função para processar dados (seja do Sheets ou fallback)
     function processarDados(dadosRaw) {
       musicasData = dadosRaw;
       categorias = [...new Set(dadosRaw.map(item => item.categoria))];
@@ -1682,7 +1682,7 @@ const sheetUrl = '/api/get-sheet-data';
 
     // NOVA FUNÇÃO: Verificar se a linha 1 tem cor diferente de branco
     function verificarStatusPedidosMusica(csvText) {
-      // Como não temos acesso direto às cores via dados estruturados, vamos usar uma abordagem alternativa
+      // Como não temos acesso direto às cores via CSV, vamos usar uma abordagem alternativa
       // Verificamos se existe um marcador especial na primeira linha
       const linhas = csvText.split('\n');
       if (linhas.length > 0) {
@@ -1701,13 +1701,13 @@ const sheetUrl = '/api/get-sheet-data';
       }
       
       // Por padrão, assumir que os pedidos estão ativos
-      // NOTA: Para implementação completa, seria necessário usar a API do fonte de dados
+      // NOTA: Para implementação completa, seria necessário usar a API do Google Sheets
       // que permite acessar informações de formatação, incluindo cores de fundo
       return true;
     }
 
-    // Função para processar dados estruturados de forma mais robusta
-    function processardados estruturados(csvText) {
+    // Função para processar CSV de forma mais robusta
+    function processarCSV(csvText) {
       const linhas = csvText.split('\n').filter(linha => linha.trim() !== '');
       const dadosProcessados = [];
       
@@ -1716,7 +1716,7 @@ const sheetUrl = '/api/get-sheet-data';
         const linha = linhas[i].trim();
         if (!linha) continue;
         
-        // Processar dados estruturados considerando aspas e vírgulas dentro de campos
+        // Processar CSV considerando aspas e vírgulas dentro de campos
         const campos = [];
         let campoAtual = '';
         let dentroDeAspas = false;
@@ -1754,7 +1754,7 @@ const sheetUrl = '/api/get-sheet-data';
     // Função para carregar dados com retry
     async function carregarDados() {
       // Função de carregamento com retry conservador
-      async function tentarCarregardados(tentativa = 1, maxTentativas = 3) {
+      async function tentarCarregarSheets(tentativa = 1, maxTentativas = 3) {
         try {
           console.log(`Tentativa ${tentativa} de carregar dados`);
           
@@ -1797,11 +1797,11 @@ const response = await fetch(sheetUrl, {
           pedidosMusicaAtivos = verificarStatusPedidosMusica(csvText);
           console.log(`Status dos pedidos de música: ${pedidosMusicaAtivos ? 'ATIVO' : 'INATIVO'}`);
           
-          console.log('dados estruturados recebido, processando dados...');
-          const dadosProcessados = processardados estruturados(csvText);
+          console.log('CSV recebido, processando dados...');
+          const dadosProcessados = processarCSV(csvText);
           
           if (dadosProcessados.length === 0) {
-            throw new Error('Nenhum dado válido encontrado no dados estruturados');
+            throw new Error('Nenhum dado válido encontrado no CSV');
           }
           
           console.log(`Dados carregados com sucesso: ${dadosProcessados.length} músicas em ${[...new Set(dadosProcessados.map(item => item.categoria))].length} categorias`);
@@ -1818,7 +1818,7 @@ const response = await fetch(sheetUrl, {
             const delay = tentativa === 1 ? 3000 : 6000; // 3s, 6s
             console.log(`Aguardando ${delay}ms antes da próxima tentativa`);
             await new Promise(resolve => setTimeout(resolve, delay));
-            return tentarCarregardados(tentativa + 1, maxTentativas);
+            return tentarCarregarSheets(tentativa + 1, maxTentativas);
           }
           
           return false;
@@ -1833,12 +1833,12 @@ const response = await fetch(sheetUrl, {
         return;
       }
 
-      // Se não há cache válido, carregar do fonte de dados
+      // Se não há cache válido, carregar do Google Sheets
       console.log('Nenhum cache válido, carregando dados...');
-      const sucessodados = await tentarCarregardados();
+      const sucessoSheets = await tentarCarregarSheets();
       
-      if (!sucessodados) {
-        // Se fonte de dados falhar, tentar fallback dinâmico
+      if (!sucessoSheets) {
+        // Se Google Sheets falhar, tentar fallback dinâmico
         const dadosFallback = carregarFallback();
         if (dadosFallback && dadosFallback.length > 0) {
           console.log('Fonte principal falhou, usando dados em cache');
@@ -2010,25 +2010,25 @@ const response = await fetch(sheetUrl, {
       const numeroPedido = incrementarContadorDiario();
       
       // ALTERAÇÃO 1: Novo formato da mensagem com número do pedido diário
-      let textosistema de notificação = `🎶 *Novo Pedido de Música Nº${numeroPedido}* 🎶\n👤 ${nome}`;
+      let textoTelegram = `🎶 *Novo Pedido de Música Nº${numeroPedido}* 🎶\n👤 ${nome}`;
       
-      textosistema de notificação += `\n🎵 ${musica}`;
+      textoTelegram += `\n🎵 ${musica}`;
       
       if (valorGorjeta) {
-        textosistema de notificação += `\n💰 R$${valorGorjeta}`;
+        textoTelegram += `\n💰 R$${valorGorjeta}`;
       }
       if (mensagem) {
-        textosistema de notificação += `\n💌 ${mensagem}`;
+        textoTelegram += `\n💌 ${mensagem}`;
       }
       if (telefone) {
-        // ALTERAÇÃO 2: Remover formatação do telefone na mensagem do sistema de notificação
+        // ALTERAÇÃO 2: Remover formatação do telefone na mensagem do Telegram
         const telefoneNumeros = telefone.replace(/\D/g, '');
-        textosistema de notificação += `\n📞 ${telefoneNumeros}`;
+        textoTelegram += `\n📞 ${telefoneNumeros}`;
       }
       
       // Adicionar linha de consentimento se marcada
       if (consentimento) {
-        textosistema de notificação += `\n✅ Quero ficar por dentro de novas novas experiências musicais como esta. Aceito receber mensagens suas.`;
+        textoTelegram += `\n✅ Quero ficar por dentro de novas novas experiências musicais como esta. Aceito receber mensagens suas.`;
       }
       
       // CORREÇÃO PRINCIPAL: Implementar verificação real de sucesso/falha
@@ -2039,7 +2039,7 @@ try {
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ textosistema de notificação: textosistema de notificação })
+    body: JSON.stringify({ textoTelegram: textoTelegram })
   });
 
   const data = await response.json();
