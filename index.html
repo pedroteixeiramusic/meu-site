@@ -1459,7 +1459,7 @@
   </div>
 
   <script>
-    // MODIFICAÇÃO: Alterando para usar a API do Google Sheets que permite obter metadados de formatação
+    // Configuração da API de dados
 const sheetUrl = '/api/get-sheet-data';
     
 
@@ -1751,12 +1751,12 @@ const sheetUrl = '/api/get-sheet-data';
       return dadosProcessados;
     }
 
-    // Função para carregar dados do CSV com retry - PENÚLTIMA MELHORADA
+    // Função para carregar dados com retry
     async function carregarDados() {
       // Função de carregamento com retry conservador
       async function tentarCarregarSheets(tentativa = 1, maxTentativas = 3) {
         try {
-          console.log(`Tentativa ${tentativa} de carregar Google Sheets`);
+          console.log(`Tentativa ${tentativa} de carregar dados`);
           
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout (melhorado)
@@ -1782,7 +1782,7 @@ const response = await fetch(sheetUrl, {
           const csvText = await response.text();
           
           if (!csvText || csvText.trim() === '') {
-            throw new Error('CSV vazio recebido do Google Sheets');
+            throw new Error('Dados vazios recebidos da fonte');
           }
           
           // Verificar status do site
@@ -1804,7 +1804,7 @@ const response = await fetch(sheetUrl, {
             throw new Error('Nenhum dado válido encontrado no CSV');
           }
           
-          console.log(`Google Sheets carregado com sucesso: ${dadosProcessados.length} músicas em ${[...new Set(dadosProcessados.map(item => item.categoria))].length} categorias`);
+          console.log(`Dados carregados com sucesso: ${dadosProcessados.length} músicas em ${[...new Set(dadosProcessados.map(item => item.categoria))].length} categorias`);
           processarDados(dadosProcessados);
           salvarCache(dadosProcessados, pedidosMusicaAtivos);
           salvarFallback(dadosProcessados, pedidosMusicaAtivos); // Atualiza fallback dinâmico
@@ -1834,14 +1834,14 @@ const response = await fetch(sheetUrl, {
       }
 
       // Se não há cache válido, carregar do Google Sheets
-      console.log('Nenhum cache válido, carregando do Google Sheets...');
+      console.log('Nenhum cache válido, carregando dados...');
       const sucessoSheets = await tentarCarregarSheets();
       
       if (!sucessoSheets) {
         // Se Google Sheets falhar, tentar fallback dinâmico
         const dadosFallback = carregarFallback();
         if (dadosFallback && dadosFallback.length > 0) {
-          console.log('Google Sheets falhou, usando fallback dinâmico');
+          console.log('Fonte principal falhou, usando dados em cache');
           processarDados(dadosFallback);
         } else {
           console.error('ERRO CRÍTICO: Não foi possível carregar dados de nenhuma fonte');
