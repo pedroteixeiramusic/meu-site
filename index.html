@@ -2039,7 +2039,7 @@ try {
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ texto: textoTelegram })
+    body: JSON.stringify({ textoTelegram: textoTelegram })
   });
 
   const data = await response.json();
