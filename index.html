@@ -413,7 +413,7 @@
       padding-left: 15px;
     }
     
-    /* ALTERAÇÃO 2: Reduzir tamanho da fonte dos nomes das músicas */
+    /* ALTERAÇÃO 2: Reduzir tamanho da fonte dos nomes das items */
     .musica-item span {
       font-size: 0.9em;
     }
@@ -1308,7 +1308,7 @@
   <div id="listaCategorias" style="display:none;" class="container">
     <h2>Categorias</h2>
     <div class="divider"></div>
-    <ul id="categorias"></ul>
+    <ul id="sections"></ul>
   </div>
 
   <div id="listaMusicas" style="display:none;" class="container">
@@ -1316,7 +1316,7 @@
     <div class="divider"></div>
     <input type="text" id="buscaMusica" placeholder="Buscar música..." oninput="filtrarMusicas()">
     <ul id="musicas"></ul>
-    <button class="btn-principal" onclick="mostrarCategorias()">Voltar para categorias</button>
+    <button class="btn-principal" onclick="mostrarCategorias()">Voltar para sections</button>
   </div>
 
   <div id="formularioPedido" style="display:none; text-align:left;" class="container">
@@ -1408,7 +1408,7 @@
       </div>
       
       <div class="popup-message">
-        Pode pedir mais músicas sempre que quiser — só fique atento ao show para não repetir as que já tocaram. Assim a magia continua! 🎶
+        Pode pedir mais items sempre que quiser — só fique atento ao show para não repetir as que já tocaram. Assim a magia continua! 🎶
       </div>
       
       <div class="popup-instagram">
@@ -1460,7 +1460,7 @@
 
   <script>
     // Configuração da API de dados
-const sheetUrl = '/api/get-sheet-data';
+const dataEndpoint = '/api/get-sheet-data';
     
 
     // Chaves PIX para cada valor de gorjeta
@@ -1474,16 +1474,16 @@ const sheetUrl = '/api/get-sheet-data';
       "outro": "00020126690014BR.GOV.BCB.PIX0136f4573753-c26d-4609-9610-89c810b03e310207gorjeta5204000053039865802BR5925Pedro Henrique Martins Te6009SAO PAULO62140510M5x3KrERij6304C4FC"
     };
 
-    let musicasData = [];
-    let categorias = [];
-    let categoriaAtual = '';
+    let appData = [];
+    let sections = [];
+    let currentSection = '';
     let siteAtivo = true;
     let pedidosMusicaAtivos = true; // NOVA VARIÁVEL: Controla se os pedidos de música estão ativos
     
     // Cache e fallback para dados estáticos - PENÚLTIMA MELHORADA
     let dadosCarregados = false;
-    let ultimaAtualizacao = 0;
-    const CACHE_DURACAO = 10 * 60 * 1000; // 10 minutos (melhorado)
+    let lastUpdate = 0;
+    const TIMEOUT_CONFIG = 10 * 60 * 1000; // 10 minutos (melhorado)
 
     // ALTERAÇÃO 1: Contador diário de pedidos (não mais por cliente)
     function obterContadorDiario() {
@@ -1590,7 +1590,7 @@ const sheetUrl = '/api/get-sheet-data';
     }
 
     // Função para salvar fallback dinâmico (permanente)
-    function salvarFallback(dados, statusPedidos = true) {
+    function saveBackup(dados, statusPedidos = true) {
       try {
         const fallback = {
           dados: dados,
@@ -1599,20 +1599,20 @@ const sheetUrl = '/api/get-sheet-data';
           versao: 'com_controle_pedidos'
         };
         localStorage.setItem('musicasFallback', JSON.stringify(fallback));
-        console.log(`Fallback atualizado com ${dados.length} músicas e status de pedidos: ${statusPedidos}`);
+        console.log(`Fallback atualizado com ${dados.length} items e status de pedidos: ${statusPedidos}`);
       } catch (error) {
         console.error('Erro ao salvar fallback:', error);
       }
     }
 
     // Função para carregar fallback dinâmico
-    function carregarFallback() {
+    function loadBackup() {
       try {
         const fallback = localStorage.getItem('musicasFallback');
         if (fallback) {
           const dadosFallback = JSON.parse(fallback);
           if (dadosFallback.dados && dadosFallback.dados.length > 0) {
-            console.log(`Fallback carregado com ${dadosFallback.dados.length} músicas`);
+            console.log(`Fallback carregado com ${dadosFallback.dados.length} items`);
             // Carregar também o status dos pedidos de música
             if (dadosFallback.hasOwnProperty('pedidosMusicaAtivos')) {
               pedidosMusicaAtivos = dadosFallback.pedidosMusicaAtivos;
@@ -1636,7 +1636,7 @@ const sheetUrl = '/api/get-sheet-data';
           const agora = Date.now();
           
           // Verificar se o cache ainda é válido
-          if (agora - dadosCache.timestamp < CACHE_DURACAO) {
+          if (agora - dadosCache.timestamp < TIMEOUT_CONFIG) {
             // Carregar também o status dos pedidos de música
             if (dadosCache.hasOwnProperty('pedidosMusicaAtivos')) {
               pedidosMusicaAtivos = dadosCache.pedidosMusicaAtivos;
@@ -1653,22 +1653,22 @@ const sheetUrl = '/api/get-sheet-data';
 
     // Função para processar dados (seja do Sheets ou fallback)
     function processarDados(dadosRaw) {
-      musicasData = dadosRaw;
-      categorias = [...new Set(dadosRaw.map(item => item.categoria))];
+      appData = dadosRaw;
+      sections = [...new Set(dadosRaw.map(item => item.categoria))];
       dadosCarregados = true;
-      ultimaAtualizacao = Date.now();
+      lastUpdate = Date.now();
       
-      // ALTERAÇÃO 1: Habilitar o botão "Pedir música" após carregar as categorias
+      // ALTERAÇÃO 1: Habilitar o botão "Pedir música" após carregar as sections
       const btnPedirMusica = document.getElementById('btnPedirMusica');
       if (btnPedirMusica) {
         btnPedirMusica.disabled = false;
-        console.log('Botão "Pedir música" habilitado após carregamento das categorias');
+        console.log('Botão "Pedir música" habilitado após carregamento das sections');
       }
     }
 
     // Função para verificar status do site
-    function verificarStatusSite(csvText) {
-      const linhas = csvText.split('\n');
+    function verificarStatusSite(textData) {
+      const linhas = textData.split('\n');
       if (linhas.length > 1) {
         const segundaLinha = linhas[1];
         const campos = segundaLinha.split(',');
@@ -1681,10 +1681,10 @@ const sheetUrl = '/api/get-sheet-data';
     }
 
     // NOVA FUNÇÃO: Verificar se a linha 1 tem cor diferente de branco
-    function verificarStatusPedidosMusica(csvText) {
+    function verificarStatusPedidosMusica(textData) {
       // Como não temos acesso direto às cores via CSV, vamos usar uma abordagem alternativa
       // Verificamos se existe um marcador especial na primeira linha
-      const linhas = csvText.split('\n');
+      const linhas = textData.split('\n');
       if (linhas.length > 0) {
         const primeiraLinha = linhas[0];
         // Se a primeira linha contém um marcador especial (como "DESATIVADO" ou similar)
@@ -1707,9 +1707,9 @@ const sheetUrl = '/api/get-sheet-data';
     }
 
     // Função para processar CSV de forma mais robusta
-    function processarCSV(csvText) {
-      const linhas = csvText.split('\n').filter(linha => linha.trim() !== '');
-      const dadosProcessados = [];
+    function processData(textData) {
+      const linhas = textData.split('\n').filter(linha => linha.trim() !== '');
+      const processedData = [];
       
       // Pular a primeira linha (cabeçalho)
       for (let i = 1; i < linhas.length; i++) {
@@ -1743,18 +1743,18 @@ const sheetUrl = '/api/get-sheet-data';
           const musica = campos[1].replace(/^"|"$/g, '').trim();
           
           if (categoria && musica) {
-            dadosProcessados.push({ categoria, musica });
+            processedData.push({ categoria, musica });
           }
         }
       }
       
-      return dadosProcessados;
+      return processedData;
     }
 
     // Função para carregar dados com retry
     async function carregarDados() {
       // Função de carregamento com retry conservador
-      async function tentarCarregarSheets(tentativa = 1, maxTentativas = 3) {
+      async function attemptDataLoad(tentativa = 1, maxRetries = 3) {
         try {
           console.log(`Tentativa ${tentativa} de carregar dados`);
           
@@ -1762,7 +1762,7 @@ const sheetUrl = '/api/get-sheet-data';
           const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout (melhorado)
           
 // VERSÃO CORRIGIDA
-const response = await fetch(sheetUrl, {
+const response = await fetch(dataEndpoint, {
   method: 'GET', // O método da requisição
   signal: controller.signal, // Para o controle de timeout
   cache: 'no-cache', // Para não usar o cache do navegador
@@ -1779,46 +1779,46 @@ const response = await fetch(sheetUrl, {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
           
-          const csvText = await response.text();
+          const textData = await response.text();
           
-          if (!csvText || csvText.trim() === '') {
+          if (!textData || textData.trim() === '') {
             throw new Error('Dados vazios recebidos da fonte');
           }
           
           // Verificar status do site
-          siteAtivo = verificarStatusSite(csvText);
+          siteAtivo = verificarStatusSite(textData);
           
           if (!siteAtivo) {
             document.getElementById('indisponivelOverlay').style.display = 'flex';
-            return true; // Retorna sucesso mas não processa músicas
+            return true; // Retorna sucesso mas não processa items
           }
 
           // NOVA VERIFICAÇÃO: Status dos pedidos de música baseado na linha 1
-          pedidosMusicaAtivos = verificarStatusPedidosMusica(csvText);
+          pedidosMusicaAtivos = verificarStatusPedidosMusica(textData);
           console.log(`Status dos pedidos de música: ${pedidosMusicaAtivos ? 'ATIVO' : 'INATIVO'}`);
           
           console.log('CSV recebido, processando dados...');
-          const dadosProcessados = processarCSV(csvText);
+          const processedData = processData(textData);
           
-          if (dadosProcessados.length === 0) {
+          if (processedData.length === 0) {
             throw new Error('Nenhum dado válido encontrado no CSV');
           }
           
-          console.log(`Dados carregados com sucesso: ${dadosProcessados.length} músicas em ${[...new Set(dadosProcessados.map(item => item.categoria))].length} categorias`);
-          processarDados(dadosProcessados);
-          salvarCache(dadosProcessados, pedidosMusicaAtivos);
-          salvarFallback(dadosProcessados, pedidosMusicaAtivos); // Atualiza fallback dinâmico
+          console.log(`Data loaded com sucesso: ${processedData.length} items em ${[...new Set(processedData.map(item => item.categoria))].length} sections`);
+          processarDados(processedData);
+          salvarCache(processedData, pedidosMusicaAtivos);
+          saveBackup(processedData, pedidosMusicaAtivos); // Atualiza fallback dinâmico
           return true;
           
         } catch (error) {
           console.error(`Tentativa ${tentativa} falhou:`, error.message);
           
-          if (tentativa < maxTentativas) {
+          if (tentativa < maxRetries) {
             // Retry conservador com delays fixos
             const delay = tentativa === 1 ? 3000 : 6000; // 3s, 6s
             console.log(`Aguardando ${delay}ms antes da próxima tentativa`);
             await new Promise(resolve => setTimeout(resolve, delay));
-            return tentarCarregarSheets(tentativa + 1, maxTentativas);
+            return attemptDataLoad(tentativa + 1, maxRetries);
           }
           
           return false;
@@ -1828,29 +1828,29 @@ const response = await fetch(sheetUrl, {
       // Primeiro, tentar carregar do cache
       const dadosCache = carregarCache();
       if (dadosCache && dadosCache.length > 0) {
-        console.log('Dados carregados do cache local');
+        console.log('Data loaded do cache local');
         processarDados(dadosCache);
         return;
       }
 
       // Se não há cache válido, carregar do Google Sheets
-      console.log('Nenhum cache válido, carregando dados...');
-      const sucessoSheets = await tentarCarregarSheets();
+      console.log('Nenhum cache válido, loading...');
+      const dataSuccess = await attemptDataLoad();
       
-      if (!sucessoSheets) {
+      if (!dataSuccess) {
         // Se Google Sheets falhar, tentar fallback dinâmico
-        const dadosFallback = carregarFallback();
+        const dadosFallback = loadBackup();
         if (dadosFallback && dadosFallback.length > 0) {
           console.log('Fonte principal falhou, usando dados em cache');
           processarDados(dadosFallback);
         } else {
           console.error('ERRO CRÍTICO: Não foi possível carregar dados de nenhuma fonte');
-          alert('Erro ao carregar lista de músicas. Verifique sua conexão e tente novamente.');
+          alert('Erro ao carregar lista de items. Verifique sua conexão e tente novamente.');
         }
       }
     }
 
-    // FUNÇÃO MODIFICADA: Verificar status antes de mostrar categorias
+    // FUNÇÃO MODIFICADA: Verificar status antes de mostrar sections
     function mostrarCategorias() {
       // Verificar se os pedidos de música estão ativos
       if (!pedidosMusicaAtivos) {
@@ -1866,10 +1866,10 @@ const response = await fetch(sheetUrl, {
       document.getElementById('confirmacao').style.display = 'none';
       document.getElementById('listaCategorias').style.display = 'block';
       
-      const listaCategorias = document.getElementById('categorias');
+      const listaCategorias = document.getElementById('sections');
       listaCategorias.innerHTML = '';
       
-      categorias.forEach(categoria => {
+      sections.forEach(categoria => {
         const li = document.createElement('li');
         li.textContent = categoria;
         li.onclick = () => mostrarMusicas(categoria);
@@ -1883,12 +1883,12 @@ const response = await fetch(sheetUrl, {
     }
 
     function mostrarMusicas(categoria) {
-      categoriaAtual = categoria; // Define a categoria atual
+      currentSection = categoria; // Define a categoria atual
       document.getElementById('listaCategorias').style.display = 'none';
       document.getElementById('listaMusicas').style.display = 'block';
       
       document.getElementById("listaMusicas").querySelector("h2").textContent = categoria;
-      const musicasCategoria = musicasData.filter(item => item.categoria === categoria).sort((a, b) => a.musica.localeCompare(b.musica));
+      const musicasCategoria = appData.filter(item => item.categoria === categoria).sort((a, b) => a.musica.localeCompare(b.musica));
       exibirMusicas(musicasCategoria);
     }
 
@@ -1916,7 +1916,7 @@ const response = await fetch(sheetUrl, {
     function filtrarMusicas() {
       const termo = document.getElementById('buscaMusica').value.toLowerCase();
       const termoSemAcentos = removerAcentos(termo);
-      const musicasDaCategoriaAtual = musicasData.filter(item => item.categoria === categoriaAtual);
+      const musicasDaCategoriaAtual = appData.filter(item => item.categoria === currentSection);
       const musicasFiltradas = musicasDaCategoriaAtual.filter(item => {
         const musicaSemAcentos = removerAcentos(item.musica.toLowerCase());
         return musicaSemAcentos.includes(termoSemAcentos);
