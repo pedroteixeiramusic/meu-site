@@ -1752,48 +1752,103 @@ const sheetUrl = '/api/get-sheet-data';
     }
 
     // Função para carregar dados com retry
-   // Versão simplificada que usa APIs backend
-async function carregarDados() {
-  try {
-    // Buscar configurações do backend
-    const configResponse = await fetch('/api/get-app-config');
-    const config = await configResponse.json();
-    
-    // Verificar status (manter sua lógica existente de verificação)
-    // ... código de verificação de status mantido ...
-    
-    // Buscar categorias do backend (lógica agora oculta)
-    console.log('Carregando dados...');
-    const categoriasResponse = await fetch('/api/get-categories');
-    
-    if (!categoriasResponse.ok) {
-      throw new Error('Erro ao carregar categorias');
-    }
-    
-    const categoriasData = await categoriasResponse.json();
-    categorias = categoriasData.categorias;
-    
-    console.log(`Dados carregados: ${categorias.length} categorias`);
-    
-    // Habilitar botão após carregar
-    const btnPedirMusica = document.getElementById('btnPedirMusica');
-    if (btnPedirMusica) {
-      btnPedirMusica.disabled = false;
-    }
-    
-  } catch (error) {
-    console.error('Erro ao carregar dados:', error);
-    
-    // Fallback para dados em cache local (manter sua lógica existente)
-    const dadosFallback = carregarFallback();
-    if (dadosFallback && dadosFallback.length > 0) {
-      console.log('Usando dados em cache');
-      processarDados(dadosFallback);
-    } else {
-      alert('Erro ao carregar dados. Verifique sua conexão.');
-    }
+    async function carregarDados() {
+      // Função de carregamento com retry conservador
+      async function tentarCarregarSheets(tentativa = 1, maxTentativas = 3) {
+        try {
+          console.log(`Tentativa ${tentativa} de carregar dados`);
+          
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout (melhorado)
+          
+// VERSÃO CORRIGIDA
+const response = await fetch(sheetUrl, {
+  method: 'GET', // O método da requisição
+  signal: controller.signal, // Para o controle de timeout
+  cache: 'no-cache', // Para não usar o cache do navegador
+  headers: {
+    'Cache-Control': 'no-cache',
+    'Pragma': 'no-cache'
   }
-}
+});
+// FIM DA VERSÃO CORRIGIDA
+
+          clearTimeout(timeoutId);
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          
+          const csvText = await response.text();
+          
+          if (!csvText || csvText.trim() === '') {
+            throw new Error('Dados vazios recebidos da fonte');
+          }
+          
+          // Verificar status do site
+          siteAtivo = verificarStatusSite(csvText);
+          
+          if (!siteAtivo) {
+            document.getElementById('indisponivelOverlay').style.display = 'flex';
+            return true; // Retorna sucesso mas não processa músicas
+          }
+
+          // NOVA VERIFICAÇÃO: Status dos pedidos de música baseado na linha 1
+          pedidosMusicaAtivos = verificarStatusPedidosMusica(csvText);
+          console.log(`Status dos pedidos de música: ${pedidosMusicaAtivos ? 'ATIVO' : 'INATIVO'}`);
+          
+          console.log('CSV recebido, processando dados...');
+          const dadosProcessados = processarCSV(csvText);
+          
+          if (dadosProcessados.length === 0) {
+            throw new Error('Nenhum dado válido encontrado no CSV');
+          }
+          
+          console.log(`Dados carregados com sucesso: ${dadosProcessados.length} músicas em ${[...new Set(dadosProcessados.map(item => item.categoria))].length} categorias`);
+          processarDados(dadosProcessados);
+          salvarCache(dadosProcessados, pedidosMusicaAtivos);
+          salvarFallback(dadosProcessados, pedidosMusicaAtivos); // Atualiza fallback dinâmico
+          return true;
+          
+        } catch (error) {
+          console.error(`Tentativa ${tentativa} falhou:`, error.message);
+          
+          if (tentativa < maxTentativas) {
+            // Retry conservador com delays fixos
+            const delay = tentativa === 1 ? 3000 : 6000; // 3s, 6s
+            console.log(`Aguardando ${delay}ms antes da próxima tentativa`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            return tentarCarregarSheets(tentativa + 1, maxTentativas);
+          }
+          
+          return false;
+        }
+      }
+
+      // Primeiro, tentar carregar do cache
+      const dadosCache = carregarCache();
+      if (dadosCache && dadosCache.length > 0) {
+        console.log('Dados carregados do cache local');
+        processarDados(dadosCache);
+        return;
+      }
+
+      // Se não há cache válido, carregar do Google Sheets
+      console.log('Nenhum cache válido, carregando dados...');
+      const sucessoSheets = await tentarCarregarSheets();
+      
+      if (!sucessoSheets) {
+        // Se Google Sheets falhar, tentar fallback dinâmico
+        const dadosFallback = carregarFallback();
+        if (dadosFallback && dadosFallback.length > 0) {
+          console.log('Fonte principal falhou, usando dados em cache');
+          processarDados(dadosFallback);
+        } else {
+          console.error('ERRO CRÍTICO: Não foi possível carregar dados de nenhuma fonte');
+          alert('Erro ao carregar lista de músicas. Verifique sua conexão e tente novamente.');
+        }
+      }
+    }
 
     // FUNÇÃO MODIFICADA: Verificar status antes de mostrar categorias
     function mostrarCategorias() {
@@ -1827,30 +1882,15 @@ async function carregarDados() {
       document.getElementById('showNaoComecouOverlay').style.display = 'none';
     }
 
-    async function mostrarMusicas(categoria) {
-  try {
-    categoriaAtual = categoria;
-    document.getElementById('listaCategorias').style.display = 'none';
-    document.getElementById('listaMusicas').style.display = 'block';
-    
-    document.getElementById("listaMusicas").querySelector("h2").textContent = categoria;
-    
-    // Buscar músicas do backend (lógica de filtro agora oculta)
-    console.log('Carregando músicas...');
-    const response = await fetch(`/api/get-songs?categoria=${encodeURIComponent(categoria)}`);
-    
-    if (!response.ok) {
-      throw new Error('Erro ao carregar músicas');
+    function mostrarMusicas(categoria) {
+      categoriaAtual = categoria; // Define a categoria atual
+      document.getElementById('listaCategorias').style.display = 'none';
+      document.getElementById('listaMusicas').style.display = 'block';
+      
+      document.getElementById("listaMusicas").querySelector("h2").textContent = categoria;
+      const musicasCategoria = musicasData.filter(item => item.categoria === categoria).sort((a, b) => a.musica.localeCompare(b.musica));
+      exibirMusicas(musicasCategoria);
     }
-    
-    const data = await response.json();
-    exibirMusicas(data.musicas);
-    
-  } catch (error) {
-    console.error('Erro ao carregar músicas:', error);
-    alert('Erro ao carregar músicas da categoria');
-  }
-}
 
     function exibirMusicas(musicas) {
       const listaMusicas = document.getElementById('musicas');
