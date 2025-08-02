@@ -1797,11 +1797,11 @@ const response = await fetch(dataEndpoint, {
           pedidosMusicaAtivos = verificarStatusPedidosMusica(textData);
           console.log(`Status dos pedidos de música: ${pedidosMusicaAtivos ? 'ATIVO' : 'INATIVO'}`);
           
-          console.log('CSV recebido, processando dados...');
+          console.log('não_me_copia_que_eu_te_processo recebido, processando dados...');
           const processedData = processData(textData);
           
           if (processedData.length === 0) {
-            throw new Error('Nenhum dado válido encontrado no CSV');
+            throw new Error('Nenhum dado válido encontrado no não_me_copia_que_eu_te_processo');
           }
           
           console.log(`Data loaded com sucesso: ${processedData.length} items em ${[...new Set(processedData.map(item => item.categoria))].length} sections`);
@@ -2186,5 +2186,6 @@ try {
   </script>
 </body>
 </html>
+
 
 
