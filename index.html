@@ -655,71 +655,6 @@
       50% { opacity: 0.4; }
     }
     
-    /* Tela de indisponibilidade */
-    .indisponivel-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.95);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      backdrop-filter: blur(10px);
-    }
-    
-    .indisponivel-content {
-      background: linear-gradient(135deg, rgba(30, 30, 30, 0.95), rgba(40, 40, 40, 0.95));
-      border-radius: 15px;
-      padding: 40px 30px;
-      max-width: 400px;
-      width: 90%;
-      text-align: center;
-      border: 2px solid var(--color-accent);
-      box-shadow: 
-        0 0 30px rgba(191, 155, 48, 0.3),
-        0 0 60px rgba(0, 0, 0, 0.5);
-      position: relative;
-      backdrop-filter: blur(10px);
-    }
-    
-    .indisponivel-content::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(to right, transparent, var(--color-accent), transparent);
-      border-radius: 15px 15px 0 0;
-    }
-    
-    .indisponivel-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.5em;
-      color: var(--color-accent);
-      margin-bottom: 20px;
-    }
-    
-    .indisponivel-message {
-      font-size: 1.1em;
-      line-height: 1.6;
-      color: var(--color-text-secondary);
-      margin-bottom: 25px;
-    }
-    
-    .indisponivel-instagram {
-      color: var(--color-text-primary);
-      text-decoration: none;
-      font-weight: 500;
-    }
-    
-    .indisponivel-instagram:hover {
-      color: var(--color-accent);
-    }
-
     /* Pop-up Show Não Começou */
     .show-nao-comecou-overlay {
       position: fixed;
@@ -1223,18 +1158,7 @@
   </style>
 </head>
 <body>
-  <!-- Tela de indisponibilidade -->
-  <div id="indisponivelOverlay" class="indisponivel-overlay">
-    <div class="indisponivel-content">
-      <div class="indisponivel-title">🎵 Site Temporariamente Indisponível</div>
-      <div class="indisponivel-message">
-        O site está temporariamente fora do ar para manutenção.<br><br>
-        Acompanhe as novidades no Instagram:
-      </div>
-      <a href="https://www.instagram.com/pedroteixeiramusic?igsh=NGx1dmo3cHc4YzMw&utm_source=qr" class="indisponivel-instagram" target="_blank">@pedroteixeiramusic</a>
-    </div>
-  </div>
-
+  
   <!-- Pop-up Show Não Começou -->
   <div id="showNaoComecouOverlay" class="show-nao-comecou-overlay">
     <div class="show-nao-comecou-content">
@@ -2163,6 +2087,7 @@ try {
   </script>
 </body>
 </html>
+
 
 
 
