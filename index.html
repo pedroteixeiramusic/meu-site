@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pedro Teixeira</title>
-  <link rel="preconnect" href="https:
-  <link rel="preconnect" href="https:
-  <link href="https:
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --color-primary: #5D1725;
@@ -1231,7 +1231,7 @@
         O site está temporariamente fora do ar para manutenção.<br><br>
         Acompanhe as novidades no Instagram:
       </div>
-      <a href="https:
+      <a href="https://www.instagram.com/pedroteixeiramusic?igsh=NGx1dmo3cHc4YzMw&utm_source=qr" class="indisponivel-instagram" target="_blank">@pedroteixeiramusic</a>
     </div>
   </div>
 
@@ -1242,7 +1242,7 @@
       <div class="show-nao-comecou-message">
         A função 'pedir música' estará disponível ao vivo!<br><br>
         Confira os locais dos próximos shows em 
-        <a href="https:
+        <a href="https://www.instagram.com/pedroteixeiramusic?igsh=NGx1dmo3cHc4YzMw&utm_source=qr" class="show-nao-comecou-instagram" target="_blank">@pedroteixeiramusic</a>
       </div>
       <button class="btn-show-nao-comecou-fechar" onclick="fecharShowNaoComecou()">Entendi!</button>
     </div>
@@ -1286,20 +1286,20 @@
     
     <p class="mensagem">Seja bem-vindo(a)! Você está prestes a viver um momento único — feito ao vivo, com violão, voz e presença. Cada nota é tocada com intenção, criando uma atmosfera intimista, pensada para quem está aqui e agora. Quer deixar sua marca nesse instante? É só navegar pelo repertório e escolher a próxima canção. A música começa comigo, mas ganha sentido com você. 🎶</p>
     <button class="btn-quinta-alternativa" onclick="mostrarPopupQuinta()">
-      <svg xmlns="http:
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="10"></circle>
         <path d="M9,9h6v6H9z"></path>
         <path d="m9 12 2 2 4-4"></path>
       </svg>
       O que é a Quinta Alternativa?
     </button>
-    <button class="btn-instagram" onclick="window.open('https:
-      <svg xmlns="http:
+    <button class="btn-instagram" onclick="window.open('https://www.instagram.com/pedroteixeiramusic?igsh=NGx1dmo3cHc4YzMw&utm_source=qr')">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
         <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
         <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
       </svg>
-      <a href="https:
+      <a href="https://www.instagram.com/pedroteixeiramusic?igsh=NGx1dmo3cHc4YzMw&utm_source=qr" target="_blank">@pedroteixeiramusic</a>
     </button><br>
     <!-- ALTERAÇÃO 1: Botão "Pedir música" agora começa desabilitado -->
     <button id="btnPedirMusica" class="btn-principal" onclick="mostrarCategorias()" disabled>Pedir música</button>
@@ -1413,7 +1413,7 @@
       
       <div class="popup-instagram">
         <p>📸 Vai filmar esse momento?</p>
-        <p>Me marca no Instagram: <strong><a href="https:
+        <p>Me marca no Instagram: <strong><a href="https://www.instagram.com/pedroteixeiramusic?igsh=NGx1dmo3cHc4YzMw&utm_source=qr" target="_blank">@pedroteixeiramusic</a></strong> 💛</p>
       </div>
       
       <button class="btn-popup-fechar" onclick="fecharPopupDica()">Entendi!</button>
@@ -1433,7 +1433,7 @@
       </div>
       
       <div class="popup-quinta-message">
-        Quinta Alternativa é um projeto criado e apresentado por Pedro desde fevereiro de 2023, com shows ao vivo todas as quintas-feiras em locais selecionados. O objetivo principal é celebrar e valorizar a arte e a cultura, especialmente a música. Quer acompanhar a agenda? Siga <a href="https:
+        Quinta Alternativa é um projeto criado e apresentado por Pedro desde fevereiro de 2023, com shows ao vivo todas as quintas-feiras em locais selecionados. O objetivo principal é celebrar e valorizar a arte e a cultura, especialmente a música. Quer acompanhar a agenda? Siga <a href="https://www.instagram.com/pedroteixeiramusic?igsh=NGx1dmo3cHc4YzMw&utm_source=qr" target="_blank">@pedroteixeiramusic</a> no Instagram!
       </div>
     </div>
   </div>
@@ -1459,9 +1459,11 @@
   </div>
 
   <script>
-const dataEndpoint = '/api/get-data';
+    // Configuração da API de dados
+const dataEndpoint = '/api/get-sheet-data';
     
 
+    // Chaves PIX para cada valor de gorjeta
     const CHAVES_PIX = {
       "3": "00020126690014BR.GOV.BCB.PIX0136f4573753-c26d-4609-9610-89c810b03e310207gorjeta52040000530398654043.005802BR5925Pedro Henrique Martins Te6009SAO PAULO61080540900062230519bxWWKAP3L3MfEsdk5xs6304BCE3",
       "7": "00020126690014BR.GOV.BCB.PIX0136f4573753-c26d-4609-9610-89c810b03e310207gorjeta52040000530398654047.005802BR5925Pedro Henrique Martins Te6009SAO PAULO61080540900062230519K1lfTZdOaqQZnr4k5xs63043A6A",
@@ -1476,14 +1478,16 @@ const dataEndpoint = '/api/get-data';
     let sections = [];
     let currentSection = '';
     let siteAtivo = true;
-    let pedidosMusicaAtivos = true; 
+    let pedidosMusicaAtivos = true; // NOVA VARIÁVEL: Controla se os pedidos de música estão ativos
     
+    // Cache e fallback para dados estáticos - PENÚLTIMA MELHORADA
     let dadosCarregados = false;
     let lastUpdate = 0;
-    const TIMEOUT_CONFIG = 10 * 60 * 1000; 
+    const TIMEOUT_CONFIG = 10 * 60 * 1000; // 10 minutos (melhorado)
 
+    // ALTERAÇÃO 1: Contador diário de pedidos (não mais por cliente)
     function obterContadorDiario() {
-      const hoje = new Date().toDateString(); 
+      const hoje = new Date().toDateString(); // Data atual como string
       const dadosContador = localStorage.getItem('contadorDiario');
       
       if (dadosContador) {
@@ -1493,6 +1497,7 @@ const dataEndpoint = '/api/get-data';
         }
       }
       
+      // Se não há dados ou é um novo dia, reinicia o contador
       return 0;
     }
 
@@ -1510,13 +1515,17 @@ const dataEndpoint = '/api/get-data';
       return contador;
     }
 
+    // Função para formatar telefone e limitar a 11 dígitos
     function formatarTelefone(input) {
+      // Remove tudo que não é dígito
       let valor = input.value.replace(/\D/g, '');
       
+      // Limita a 11 dígitos
       if (valor.length > 11) {
         valor = valor.substring(0, 11);
       }
       
+      // Aplica a formatação
       if (valor.length <= 2) {
         input.value = valor;
       } else if (valor.length <= 7) {
@@ -1526,24 +1535,28 @@ const dataEndpoint = '/api/get-data';
       }
     }
 
+    // NOVA FUNÇÃO: Verificar se o telefone está preenchido e habilitar/desabilitar checkbox
     function verificarConsentimento() {
       const telefone = document.getElementById('telefone').value;
       const checkbox = document.getElementById('consentimento');
       const label = document.getElementById('labelConsentimento');
       
+      // Remove apenas os caracteres de formatação para verificar se há dígitos suficientes
       const telefoneNumeros = telefone.replace(/\D/g, '');
       
-      if (telefoneNumeros.length >= 10) { 
+      if (telefoneNumeros.length >= 10) { // Pelo menos 10 dígitos (DDD + número)
         checkbox.disabled = false;
         label.classList.remove('disabled');
       } else {
         checkbox.disabled = true;
-        checkbox.checked = false; 
+        checkbox.checked = false; // Desmarca se ficar desabilitada
         label.classList.add('disabled');
       }
     }
 
+    // Função para detectar modo de economia de dados
     function detectarEconomiaDados() {
+      // Detectar através de connection API se disponível
       if ('connection' in navigator) {
         const connection = navigator.connection;
         if (connection.saveData || connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g') {
@@ -1551,15 +1564,18 @@ const dataEndpoint = '/api/get-data';
         }
       }
       
+      // Detectar através de preferências do usuário
       if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         document.body.classList.add('economia-dados');
       }
     }
 
+    // Função para remover acentos
     function removerAcentos(texto) {
       return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     }
 
+    // Função para salvar dados no localStorage (cache temporário)
     function salvarCache(dados, statusPedidos = true) {
       try {
         const cache = {
@@ -1573,6 +1589,7 @@ const dataEndpoint = '/api/get-data';
       }
     }
 
+    // Função para salvar fallback dinâmico (permanente)
     function saveBackup(dados, statusPedidos = true) {
       try {
         const fallback = {
@@ -1588,6 +1605,7 @@ const dataEndpoint = '/api/get-data';
       }
     }
 
+    // Função para carregar fallback dinâmico
     function loadBackup() {
       try {
         const fallback = localStorage.getItem('musicasFallback');
@@ -1595,6 +1613,7 @@ const dataEndpoint = '/api/get-data';
           const dadosFallback = JSON.parse(fallback);
           if (dadosFallback.dados && dadosFallback.dados.length > 0) {
             console.log(`Fallback carregado com ${dadosFallback.dados.length} items`);
+            // Carregar também o status dos pedidos de música
             if (dadosFallback.hasOwnProperty('pedidosMusicaAtivos')) {
               pedidosMusicaAtivos = dadosFallback.pedidosMusicaAtivos;
               console.log(`Status de pedidos do fallback: ${pedidosMusicaAtivos}`);
@@ -1608,6 +1627,7 @@ const dataEndpoint = '/api/get-data';
       return null;
     }
 
+    // Função para carregar dados do cache
     function carregarCache() {
       try {
         const cache = localStorage.getItem('musicasCache');
@@ -1615,7 +1635,9 @@ const dataEndpoint = '/api/get-data';
           const dadosCache = JSON.parse(cache);
           const agora = Date.now();
           
+          // Verificar se o cache ainda é válido
           if (agora - dadosCache.timestamp < TIMEOUT_CONFIG) {
+            // Carregar também o status dos pedidos de música
             if (dadosCache.hasOwnProperty('pedidosMusicaAtivos')) {
               pedidosMusicaAtivos = dadosCache.pedidosMusicaAtivos;
               console.log(`Status de pedidos do cache: ${pedidosMusicaAtivos}`);
@@ -1629,12 +1651,14 @@ const dataEndpoint = '/api/get-data';
       return null;
     }
 
+    // Função para processar dados (seja do Sheets ou fallback)
     function processarDados(dadosRaw) {
       appData = dadosRaw;
       sections = [...new Set(dadosRaw.map(item => item.categoria))];
       dadosCarregados = true;
       lastUpdate = Date.now();
       
+      // ALTERAÇÃO 1: Habilitar o botão "Pedir música" após carregar as sections
       const btnPedirMusica = document.getElementById('btnPedirMusica');
       if (btnPedirMusica) {
         btnPedirMusica.disabled = false;
@@ -1642,6 +1666,7 @@ const dataEndpoint = '/api/get-data';
       }
     }
 
+    // Função para verificar status do site
     function verificarStatusSite(textData) {
       const linhas = textData.split('\n');
       if (linhas.length > 1) {
@@ -1652,34 +1677,46 @@ const dataEndpoint = '/api/get-data';
           return statusSite === 'ativo';
         }
       }
-      return true; 
+      return true; // Default para ativo se não conseguir ler
     }
 
+    // NOVA FUNÇÃO: Verificar se a linha 1 tem cor diferente de branco
     function verificarStatusPedidosMusica(textData) {
+      // Como não temos acesso direto às cores via CSV, vamos usar uma abordagem alternativa
+      // Verificamos se existe um marcador especial na primeira linha
       const linhas = textData.split('\n');
       if (linhas.length > 0) {
         const primeiraLinha = linhas[0];
+        // Se a primeira linha contém um marcador especial (como "DESATIVADO" ou similar)
+        // ou se alguma célula específica contém um valor que indica desativação
         const campos = primeiraLinha.split(',');
         
+        // Verificar se algum campo da primeira linha contém marcadores de desativação
         for (let campo of campos) {
           const valorCampo = campo.replace(/^"|"$/g, '').trim().toLowerCase();
           if (valorCampo.includes('desativado') || valorCampo.includes('inativo') || valorCampo.includes('off')) {
-            return false; 
+            return false; // Pedidos desativados
           }
         }
       }
       
+      // Por padrão, assumir que os pedidos estão ativos
+      // NOTA: Para implementação completa, seria necessário usar a API do Google Sheets
+      // que permite acessar informações de formatação, incluindo cores de fundo
       return true;
     }
 
+    // Função para processar CSV de forma mais robusta
     function processData(textData) {
       const linhas = textData.split('\n').filter(linha => linha.trim() !== '');
       const processedData = [];
       
+      // Pular a primeira linha (cabeçalho)
       for (let i = 1; i < linhas.length; i++) {
         const linha = linhas[i].trim();
         if (!linha) continue;
         
+        // Processar CSV considerando aspas e vírgulas dentro de campos
         const campos = [];
         let campoAtual = '';
         let dentroDeAspas = false;
@@ -1697,8 +1734,10 @@ const dataEndpoint = '/api/get-data';
           }
         }
         
+        // Adicionar o último campo
         campos.push(campoAtual.trim());
         
+        // Verificar se temos pelo menos 2 campos (categoria e música)
         if (campos.length >= 2) {
           const categoria = campos[0].replace(/^"|"$/g, '').trim();
           const musica = campos[1].replace(/^"|"$/g, '').trim();
@@ -1712,23 +1751,27 @@ const dataEndpoint = '/api/get-data';
       return processedData;
     }
 
+    // Função para carregar dados com retry
     async function carregarDados() {
+      // Função de carregamento com retry conservador
       async function attemptDataLoad(tentativa = 1, maxRetries = 3) {
         try {
           console.log(`Tentativa ${tentativa} de carregar dados`);
           
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 15000); 
+          const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout (melhorado)
           
+// VERSÃO CORRIGIDA
 const response = await fetch(dataEndpoint, {
-  method: 'GET', 
-  signal: controller.signal, 
-  cache: 'no-cache', 
+  method: 'GET', // O método da requisição
+  signal: controller.signal, // Para o controle de timeout
+  cache: 'no-cache', // Para não usar o cache do navegador
   headers: {
     'Cache-Control': 'no-cache',
     'Pragma': 'no-cache'
   }
 });
+// FIM DA VERSÃO CORRIGIDA
 
           clearTimeout(timeoutId);
           
@@ -1742,34 +1785,37 @@ const response = await fetch(dataEndpoint, {
             throw new Error('Dados vazios recebidos da fonte');
           }
           
+          // Verificar status do site
           siteAtivo = verificarStatusSite(textData);
           
           if (!siteAtivo) {
             document.getElementById('indisponivelOverlay').style.display = 'flex';
-            return true; 
+            return true; // Retorna sucesso mas não processa items
           }
 
+          // NOVA VERIFICAÇÃO: Status dos pedidos de música baseado na linha 1
           pedidosMusicaAtivos = verificarStatusPedidosMusica(textData);
           console.log(`Status dos pedidos de música: ${pedidosMusicaAtivos ? 'ATIVO' : 'INATIVO'}`);
           
-          console.log('DATA recebido, processando dados...');
+          console.log('CSV recebido, processando dados...');
           const processedData = processData(textData);
           
           if (processedData.length === 0) {
-            throw new Error('Nenhum dado válido encontrado no DATA');
+            throw new Error('Nenhum dado válido encontrado no CSV');
           }
           
           console.log(`Data loaded com sucesso: ${processedData.length} items em ${[...new Set(processedData.map(item => item.categoria))].length} sections`);
           processarDados(processedData);
           salvarCache(processedData, pedidosMusicaAtivos);
-          saveBackup(processedData, pedidosMusicaAtivos); 
+          saveBackup(processedData, pedidosMusicaAtivos); // Atualiza fallback dinâmico
           return true;
           
         } catch (error) {
           console.error(`Tentativa ${tentativa} falhou:`, error.message);
           
           if (tentativa < maxRetries) {
-            const delay = tentativa === 1 ? 3000 : 6000; 
+            // Retry conservador com delays fixos
+            const delay = tentativa === 1 ? 3000 : 6000; // 3s, 6s
             console.log(`Aguardando ${delay}ms antes da próxima tentativa`);
             await new Promise(resolve => setTimeout(resolve, delay));
             return attemptDataLoad(tentativa + 1, maxRetries);
@@ -1779,6 +1825,7 @@ const response = await fetch(dataEndpoint, {
         }
       }
 
+      // Primeiro, tentar carregar do cache
       const dadosCache = carregarCache();
       if (dadosCache && dadosCache.length > 0) {
         console.log('Data loaded do cache local');
@@ -1786,10 +1833,12 @@ const response = await fetch(dataEndpoint, {
         return;
       }
 
+      // Se não há cache válido, carregar do Google Sheets
       console.log('Nenhum cache válido, loading...');
       const dataSuccess = await attemptDataLoad();
       
       if (!dataSuccess) {
+        // Se Google Sheets falhar, tentar fallback dinâmico
         const dadosFallback = loadBackup();
         if (dadosFallback && dadosFallback.length > 0) {
           console.log('Fonte principal falhou, usando dados em cache');
@@ -1801,12 +1850,16 @@ const response = await fetch(dataEndpoint, {
       }
     }
 
+    // FUNÇÃO MODIFICADA: Verificar status antes de mostrar sections
     function mostrarCategorias() {
+      // Verificar se os pedidos de música estão ativos
       if (!pedidosMusicaAtivos) {
+        // Mostrar pop-up de "show não começou"
         document.getElementById('showNaoComecouOverlay').style.display = 'flex';
         return;
       }
 
+      // Se os pedidos estão ativos, proceder normalmente
       document.getElementById('pagina-inicial').style.display = 'none';
       document.getElementById('listaMusicas').style.display = 'none';
       document.getElementById('formularioPedido').style.display = 'none';
@@ -1824,12 +1877,13 @@ const response = await fetch(dataEndpoint, {
       });
     }
 
+    // NOVA FUNÇÃO: Fechar pop-up de "show não começou"
     function fecharShowNaoComecou() {
       document.getElementById('showNaoComecouOverlay').style.display = 'none';
     }
 
     function mostrarMusicas(categoria) {
-      currentSection = categoria; 
+      currentSection = categoria; // Define a categoria atual
       document.getElementById('listaCategorias').style.display = 'none';
       document.getElementById('listaMusicas').style.display = 'block';
       
@@ -1848,7 +1902,7 @@ const response = await fetch(dataEndpoint, {
           <div class="musica-item">
             <span>${item.musica}</span>
             <button class="btn-musica" onclick="selecionarMusica('${item.musica}')">
-              <svg xmlns="http:
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polygon points="5,3 19,12 5,21"></polygon>
               </svg>
               Toca essa!
@@ -1875,6 +1929,7 @@ const response = await fetch(dataEndpoint, {
       document.getElementById('formularioPedido').style.display = 'block';
       document.getElementById('musica').value = musica;
       
+      // Manter funcionalidade existente - carregar nome e telefone salvos
       const nomeSalvo = localStorage.getItem('nomeUsuario');
       const telefoneSalvo = localStorage.getItem('telefoneUsuario');
       
@@ -1883,6 +1938,7 @@ const response = await fetch(dataEndpoint, {
       }
       if (telefoneSalvo) {
         document.getElementById('telefone').value = telefoneSalvo;
+        // Verificar consentimento após carregar o telefone
         verificarConsentimento();
       }
     }
@@ -1908,17 +1964,20 @@ const response = await fetch(dataEndpoint, {
       }
     }
 
+    // Variável para controle de debounce
     let enviandoPedido = false;
 
     async function enviarPedido(event) {
       event.preventDefault();
       
+      // Debounce: evitar cliques duplos
       if (enviandoPedido) {
         return;
       }
       
       enviandoPedido = true;
       
+      // Feedback visual: desabilitar botão e mostrar "enviando"
       const botaoEnviar = event.target.querySelector('button[type="submit"]');
       const textoOriginalBotao = botaoEnviar.textContent;
       botaoEnviar.disabled = true;
@@ -1932,6 +1991,7 @@ const response = await fetch(dataEndpoint, {
       const mensagem = document.getElementById('mensagem').value;
       const consentimento = document.getElementById('consentimento').checked;
       
+      // Salvar nome e telefone para próximos pedidos
       if (nome) {
         localStorage.setItem('nomeUsuario', nome);
       }
@@ -1946,34 +2006,40 @@ const response = await fetch(dataEndpoint, {
         valorGorjeta = gorjeta;
       }
       
+      // ALTERAÇÃO 1: Usar contador diário em vez de por cliente
       const numeroPedido = incrementarContadorDiario();
       
-      let textoNotification = `🎶 *Novo Pedido de Música Nº${numeroPedido}* 🎶\n👤 ${nome}`;
+      // ALTERAÇÃO 1: Novo formato da mensagem com número do pedido diário
+      let textoTelegram = `🎶 *Novo Pedido de Música Nº${numeroPedido}* 🎶\n👤 ${nome}`;
       
-      textoNotification += `\n🎵 ${musica}`;
+      textoTelegram += `\n🎵 ${musica}`;
       
       if (valorGorjeta) {
-        textoNotification += `\n💰 R$${valorGorjeta}`;
+        textoTelegram += `\n💰 R$${valorGorjeta}`;
       }
       if (mensagem) {
-        textoNotification += `\n💌 ${mensagem}`;
+        textoTelegram += `\n💌 ${mensagem}`;
       }
       if (telefone) {
+        // ALTERAÇÃO 2: Remover formatação do telefone na mensagem do Telegram
         const telefoneNumeros = telefone.replace(/\D/g, '');
-        textoNotification += `\n📞 ${telefoneNumeros}`;
+        textoTelegram += `\n📞 ${telefoneNumeros}`;
       }
       
+      // Adicionar linha de consentimento se marcada
       if (consentimento) {
-        textoNotification += `\n✅ Quero ficar por dentro de novas novas experiências musicais como esta. Aceito receber mensagens suas.`;
+        textoTelegram += `\n✅ Quero ficar por dentro de novas novas experiências musicais como esta. Aceito receber mensagens suas.`;
       }
       
+      // CORREÇÃO PRINCIPAL: Implementar verificação real de sucesso/falha
+   // CORREÇÃO PRINCIPAL: Implementar verificação real de sucesso/falha
 try {
   const response = await fetch("/.netlify/functions/enviar-pedido", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ textoNotification: textoNotification })
+    body: JSON.stringify({ textoTelegram: textoTelegram })
   });
 
   const data = await response.json();
@@ -1982,6 +2048,7 @@ try {
     throw new Error(data.error || 'Erro desconhecido ao enviar pedido.');
   }
 
+  // Se chegou até aqui, o envio foi bem-sucedido
   console.log('Pedido enviado com sucesso!');
   document.getElementById("formularioPedido").style.display = "none";
   document.getElementById("confirmacao").style.display = "block";
@@ -2037,6 +2104,7 @@ try {
       document.getElementById('confirmacao').style.display = 'none';
       document.getElementById('pagina-inicial').style.display = 'block';
       
+      // Limpar formulário (exceto nome e telefone que devem ser mantidos)
       document.getElementById('musica').value = '';
       document.getElementById('gorjeta').value = '';
       document.getElementById('outroValor').value = '';
@@ -2046,9 +2114,11 @@ try {
       document.getElementById('mensagem').disabled = true;
       document.getElementById('mensagem').placeholder = 'Envie uma gorjeta para ativar';
       
+      // Verificar consentimento após limpar o formulário
       verificarConsentimento();
     }
 
+    // Funções do Pop-up
     function mostrarPopupDica() {
       document.getElementById('popupDica').style.display = 'flex';
     }
@@ -2058,6 +2128,7 @@ try {
       voltarInicio();
     }
 
+    // Funções do Pop-up Quinta Alternativa
     function mostrarPopupQuinta() {
       document.getElementById('popupQuinta').style.display = 'flex';
     }
@@ -2066,6 +2137,7 @@ try {
       document.getElementById('popupQuinta').style.display = 'none';
     }
 
+    // Funções do Pop-up Gorjeta
     function mostrarPopupGorjeta() {
       document.getElementById('popupGorjeta').style.display = 'flex';
     }
@@ -2074,6 +2146,7 @@ try {
       document.getElementById('popupGorjeta').style.display = 'none';
     }
 
+    // Fechar pop-up clicando fora dele
     document.addEventListener('click', function(event) {
       const popup = document.getElementById('popupDica');
       const popupContent = document.querySelector('.popup-content');
@@ -2096,6 +2169,7 @@ try {
         fecharPopupGorjeta();
       }
 
+      // Fechar pop-up "show não começou" clicando fora
       const showNaoComecouOverlay = document.getElementById('showNaoComecouOverlay');
       const showNaoComecouContent = document.querySelector('.show-nao-comecou-content');
       
@@ -2104,6 +2178,7 @@ try {
       }
     });
 
+    // Carregar dados quando a página carrega
     window.addEventListener('load', function() {
       detectarEconomiaDados();
       carregarDados();
