@@ -1477,7 +1477,6 @@ const dataEndpoint = '/api/get-data';
     let appData = [];
     let sections = [];
     let currentSection = '';
-    let siteAtivo = true;
     let pedidosMusicaAtivos = true; // NOVA VARIÁVEL: Controla se os pedidos de música estão ativos
     
     // Cache e fallback para dados estáticos - PENÚLTIMA MELHORADA
@@ -1666,20 +1665,6 @@ const dataEndpoint = '/api/get-data';
       }
     }
 
-    // Função para verificar status do site
-    function verificarStatusSite(textData) {
-      const linhas = textData.split('\n');
-      if (linhas.length > 1) {
-        const segundaLinha = linhas[1];
-        const campos = segundaLinha.split(',');
-        if (campos.length > 1) {
-          const statusSite = campos[1].replace(/^"|"$/g, '').trim().toLowerCase();
-          return statusSite === 'ativo';
-        }
-      }
-      return true; // Default para ativo se não conseguir ler
-    }
-
     // NOVA FUNÇÃO: Verificar se a linha 1 tem cor diferente de branco
     function verificarStatusPedidosMusica(textData) {
       // Como não temos acesso direto às cores via CSV, vamos usar uma abordagem alternativa
@@ -1785,14 +1770,6 @@ const response = await fetch(dataEndpoint, {
             throw new Error('Dados vazios recebidos da fonte');
           }
           
-          // Verificar status do site
-          siteAtivo = verificarStatusSite(textData);
-          
-          if (!siteAtivo) {
-            document.getElementById('indisponivelOverlay').style.display = 'flex';
-            return true; // Retorna sucesso mas não processa items
-          }
-
           // NOVA VERIFICAÇÃO: Status dos pedidos de música baseado na linha 1
           pedidosMusicaAtivos = verificarStatusPedidosMusica(textData);
           console.log(`Status dos pedidos de música: ${pedidosMusicaAtivos ? 'ATIVO' : 'INATIVO'}`);
@@ -2186,6 +2163,7 @@ try {
   </script>
 </body>
 </html>
+
 
 
 
