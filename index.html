@@ -2010,25 +2010,25 @@ const response = await fetch(dataEndpoint, {
       const numeroPedido = incrementarContadorDiario();
       
       // ALTERAÇÃO 1: Novo formato da mensagem com número do pedido diário
-      let textoTelegram = `🎶 *Novo Pedido de Música Nº${numeroPedido}* 🎶\n👤 ${nome}`;
+      let textoLindo = `🎶 *Novo Pedido de Música Nº${numeroPedido}* 🎶\n👤 ${nome}`;
       
-      textoTelegram += `\n🎵 ${musica}`;
+      textoLindo += `\n🎵 ${musica}`;
       
       if (valorGorjeta) {
-        textoTelegram += `\n💰 R$${valorGorjeta}`;
+        textoLindo += `\n💰 R$${valorGorjeta}`;
       }
       if (mensagem) {
-        textoTelegram += `\n💌 ${mensagem}`;
+        textoLindo += `\n💌 ${mensagem}`;
       }
       if (telefone) {
         // ALTERAÇÃO 2: Remover formatação do telefone na mensagem do Telegram
         const telefoneNumeros = telefone.replace(/\D/g, '');
-        textoTelegram += `\n📞 ${telefoneNumeros}`;
+        textoLindo += `\n📞 ${telefoneNumeros}`;
       }
       
       // Adicionar linha de consentimento se marcada
       if (consentimento) {
-        textoTelegram += `\n✅ Quero ficar por dentro de novas novas experiências musicais como esta. Aceito receber mensagens suas.`;
+        textoLindo += `\n✅ Quero ficar por dentro de novas novas experiências musicais como esta. Aceito receber mensagens suas.`;
       }
       
       // CORREÇÃO PRINCIPAL: Implementar verificação real de sucesso/falha
@@ -2039,7 +2039,7 @@ try {
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ textoTelegram: textoTelegram })
+    body: JSON.stringify({ textoLindo: textoLindo })
   });
 
   const data = await response.json();
@@ -2186,4 +2186,5 @@ try {
   </script>
 </body>
 </html>
+
 
