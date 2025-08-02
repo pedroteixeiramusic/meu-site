@@ -44,9 +44,9 @@ exports.handler = async (event, context) => {
     }
 
     // Parse dos dados enviados pelo frontend
-    const { textoTelegram } = JSON.parse(event.body);
+    const { textoLindo } = JSON.parse(event.body);
     
-    if (!textoTelegram) {
+    if (!textoLindo) {
       return {
         statusCode: 400,
         headers,
@@ -67,7 +67,7 @@ exports.handler = async (event, context) => {
       },
       body: JSON.stringify({
         chat_id: TELEGRAM_CHAT_ID,
-        text: textoTelegram,
+        text: textoLindo,
         parse_mode: 'Markdown'
       })
     });
