@@ -2094,7 +2094,20 @@ try {
       carregarDados();
     });
   </script>
+
+  <footer id="rodapeCopyright" class="text-center text-sm text-gray-500 mt-10 py-4">
+  &copy; <span id="anoCopyright"></span> Pedro Teixeira. Todos os direitos reservados.
+</footer>
+
+<script>
+  const anoBase = 2025;
+  const anoAtual = new Date().getFullYear();
+  const spanAno = document.getElementById("anoCopyright");
+
+  spanAno.textContent = (anoAtual === anoBase)
+    ? `${anoBase}`
+    : `${anoBase}–${anoAtual}`;
+</script>
+ 
 </body>
 </html>
-
-
