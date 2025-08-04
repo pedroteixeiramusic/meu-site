@@ -1440,7 +1440,6 @@
 
   <script>
     // Configuração da API de copyright
-const dataEndpoint = '/api/get-todos-os-direitos-reservados';
     
     const CHAVES_PIX = {
       "3": "00020126690014BR.GOV.BCB.PIX0136f4573753-c26d-4609-9610-89c810b03e310207gorjeta52040000530398654043.005802BR5925Pedro Henrique Martins Te6009SAO PAULO61080540900062230519bxWWKAP3L3MfEsdk5xs6304BCE3",
@@ -1701,15 +1700,21 @@ const dataEndpoint = '/api/get-todos-os-direitos-reservados';
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 15000);
           
-const response = await fetch(dataEndpoint, {
-  method: 'GET',
-  signal: controller.signal,
-  cache: 'no-cache',
-  headers: {
-    'Cache-Control': 'no-cache',
-    'Pragma': 'no-cache'
+<script>
+  async function iniciarSite() {
+    try {
+      const dados = await fetchComRetry("/.netlify/functions/getRepertorio");
+      processarDados(dados); // sua função atual que organiza e ativa o site
+      document.getElementById('btnPedirMusica').disabled = false;
+    } catch (erro) {
+      console.error("Erro ao carregar repertório:", erro);
+      document.getElementById('mensagem-erro').innerText = "Erro ao carregar repertório.";
+    }
   }
-});
+
+  iniciarSite(); // Dispara ao carregar a página
+</script>
+
 
           clearTimeout(timeoutId);
           
@@ -2113,3 +2118,4 @@ try {
  
 </body>
 </html>
+
