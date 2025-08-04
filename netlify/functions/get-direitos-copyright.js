@@ -19,10 +19,12 @@ function parseCSVToJson(csv) {
   const parsed = Papa.parse(csv, { header: true });
   const data = parsed.data;
 
-  // Verifica célula de ativação
-  if (data[0] && normalize(Object.values(data[0])[0]) === "off") {
-    return { status: "off" };
-  }
+  const primeiraLinha = data[0]; // objeto com todas as células da linha 1
+const valoresLinha1 = Object.values(primeiraLinha).map(v => normalize(v));
+
+if (valoresLinha1.includes("off")) {
+  return { status: "off" };
+}
 
   const categorias = {};
   for (const row of data) {
