@@ -8,24 +8,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
   <style>
-    .spinner {
-      position: relative;
-      font-size: 3rem;
-    }
-    .circle {
-      position: absolute;
-      top: -10px; left: -10px;
-      width: 80px; height: 80px;
-      border: 3px solid #888;
-      border-top-color: transparent;
-      border-radius: 50%;
-      animation: spin 1.5s linear infinite;
-    }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-  </style>
-
     :root {
       --color-primary: #5D1725;
       --color-secondary: #3A2618;
@@ -1230,24 +1212,6 @@
   </style>
 </head>
 <body>
-  <!-- Tela de carregamento com nota musical girando -->
-  <div id="loading" style="display: flex; justify-content: center; align-items: center; height: 100vh;">
-    <div class="spinner">
-      🎵
-      <div class="circle"></div>
-    </div>
-  </div>
-
-  <!-- Mensagem para repertório OFF (inicialmente escondida) -->
-  <div id="mensagemOff" style="display:none; text-align:center; margin-top: 20px;">
-    Repertório desativado.
-  </div>
-
-  <!-- Aqui vem o restante do conteúdo da página, por exemplo: -->
-  <div id="conteudo" style="display:none;">
-    <!-- Categorias, músicas, formulário, botões, etc -->
-  </div>
-
   <div id="indisponivelOverlay" class="indisponivel-overlay">
     <div class="indisponivel-content">
       <div class="indisponivel-title">🎵 Site Temporariamente Indisponível</div>
@@ -2146,81 +2110,6 @@ try {
         : `${anoBase}–${anoAtual}`;
     }
   </script>
-
-<script>
-  // Função fetch com retry (tenta 3x antes de falhar)
-  async function fetchWithRetry(url, retries = 3, delay = 1000) {
-    for (let i = 0; i < retries; i++) {
-      try {
-        const res = await fetch(url, { cache: "reload" });
-        if (!res.ok) throw new Error("Erro HTTP");
-        return await res.json();
-      } catch (err) {
-        if (i === retries - 1) throw err;
-        await new Promise(r => setTimeout(r, delay));
-      }
-    }
-  }
-
-  // Cache local no navegador, válido por 10 minutos
-  function getCachedRepertorio() {
-    const raw = localStorage.getItem("repertorio-cache");
-    if (!raw) return null;
-    const { data, timestamp } = JSON.parse(raw);
-    if (Date.now() - timestamp > 10 * 60 * 1000) return null;
-    return data;
-  }
-
-  function setCachedRepertorio(data) {
-    localStorage.setItem(
-      "repertorio-cache",
-      JSON.stringify({ data, timestamp: Date.now() })
-    );
-  }
-
-  // Função para exibir categorias (exemplo simples)
-  function exibirCategorias(categorias) {
-    document.getElementById("conteudo").style.display = "block";
-    // Aqui você implementa a lógica para mostrar categorias e músicas na tela
-    // Por exemplo, criar elementos dinamicamente com categorias e músicas
-  }
-
-  // Função principal para carregar repertório
-  async function carregarRepertorio() {
-    // mostra loading
-    document.getElementById("loading").style.display = "flex";
-    document.getElementById("mensagemOff").style.display = "none";
-    document.getElementById("conteudo").style.display = "none";
-
-    let dados = getCachedRepertorio();
-
-    if (!dados) {
-      try {
-        dados = await fetchWithRetry("/.netlify/functions/getRepertorio");
-        if (dados.status === "ok") setCachedRepertorio(dados);
-      } catch {
-        alert("Erro ao carregar repertório.");
-        document.getElementById("loading").style.display = "none";
-        return;
-      }
-    }
-
-    document.getElementById("loading").style.display = "none";
-
-    if (dados.status === "off") {
-      document.getElementById("mensagemOff").style.display = "block";
-      return;
-    }
-
-    exibirCategorias(dados.categorias);
-  }
-
-  // Chama a função assim que a página carregar
-  document.addEventListener("DOMContentLoaded", carregarRepertorio);
-</script>
-
-  
+ 
 </body>
 </html>
-
-
