@@ -1639,20 +1639,6 @@ async function carregarDados() {
   exibirMusicas(musicas.map(musica => ({ musica: musica })));
 }
 
-    
-    if (!response.ok) {
-      throw new Error('Erro ao carregar músicas');
-    }
-    
-    const data = await response.json();
-    exibirMusicas(data.musicas);
-    
-  } catch (error) {
-    console.error('Erro ao carregar músicas:', error);
-    alert('Erro ao carregar músicas da categoria');
-  }
-}
-
     function exibirMusicas(musicas) {
       const listaMusicas = document.getElementById('musicas');
       listaMusicas.innerHTML = '';
@@ -1951,3 +1937,4 @@ try {
   </script>
 </body>
 </html>
+
