@@ -1459,10 +1459,7 @@
   </div>
 
   <script>
-    // Configuração da API de dados
-const sheetUrl = '/api/get-sheet-data';
-    
-
+   
     // Chaves PIX para cada valor de gorjeta
     const CHAVES_PIX = {
       "3": "00020126690014BR.GOV.BCB.PIX0136f4573753-c26d-4609-9610-89c810b03e310207gorjeta52040000530398654043.005802BR5925Pedro Henrique Martins Te6009SAO PAULO61080540900062230519bxWWKAP3L3MfEsdk5xs6304BCE3",
@@ -1473,17 +1470,10 @@ const sheetUrl = '/api/get-sheet-data';
       "100": "00020126690014BR.GOV.BCB.PIX0136f4573753-c26d-4609-9610-89c810b03e310207gorjeta5204000053039865406100.005802BR5925Pedro Henrique Martins Te6009SAO PAULO61080540900062230519B6t0QgiXEw6htoKk5xs63048E53",
       "outro": "00020126690014BR.GOV.BCB.PIX0136f4573753-c26d-4609-9610-89c810b03e310207gorjeta5204000053039865802BR5925Pedro Henrique Martins Te6009SAO PAULO62140510M5x3KrERij6304C4FC"
     };
-
-    let musicasData = [];
-    let categorias = [];
-    let categoriaAtual = '';
-    let siteAtivo = true;
-    let pedidosMusicaAtivos = true; // NOVA VARIÁVEL: Controla se os pedidos de música estão ativos
-    
-    // Cache e fallback para dados estáticos - PENÚLTIMA MELHORADA
-    let dadosCarregados = false;
-    let ultimaAtualizacao = 0;
-    const CACHE_DURACAO = 10 * 60 * 1000; // 10 minutos (melhorado)
+// novo 
+let appData = {};
+let categoriaAtual = '';
+let pedidosMusicaAtivos = true;
 
     // ALTERAÇÃO 1: Contador diário de pedidos (não mais por cliente)
     function obterContadorDiario() {
@@ -1575,269 +1565,80 @@ const sheetUrl = '/api/get-sheet-data';
       return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     }
 
-    // Função para salvar dados no localStorage (cache temporário)
-    function salvarCache(dados, statusPedidos = true) {
-      try {
-        const cache = {
-          dados: dados,
-          pedidosMusicaAtivos: statusPedidos,
-          timestamp: Date.now()
-        };
-        localStorage.setItem('musicasCache', JSON.stringify(cache));
-      } catch (error) {
-        console.error('Erro ao salvar cache:', error);
-      }
-    }
-
-    // Função para salvar fallback dinâmico (permanente)
-    function salvarFallback(dados, statusPedidos = true) {
-      try {
-        const fallback = {
-          dados: dados,
-          pedidosMusicaAtivos: statusPedidos,
-          timestamp: Date.now(),
-          versao: 'com_controle_pedidos'
-        };
-        localStorage.setItem('musicasFallback', JSON.stringify(fallback));
-        console.log(`Fallback atualizado com ${dados.length} músicas e status de pedidos: ${statusPedidos}`);
-      } catch (error) {
-        console.error('Erro ao salvar fallback:', error);
-      }
-    }
-
-    // Função para carregar fallback dinâmico
-    function carregarFallback() {
-      try {
-        const fallback = localStorage.getItem('musicasFallback');
-        if (fallback) {
-          const dadosFallback = JSON.parse(fallback);
-          if (dadosFallback.dados && dadosFallback.dados.length > 0) {
-            console.log(`Fallback carregado com ${dadosFallback.dados.length} músicas`);
-            // Carregar também o status dos pedidos de música
-            if (dadosFallback.hasOwnProperty('pedidosMusicaAtivos')) {
-              pedidosMusicaAtivos = dadosFallback.pedidosMusicaAtivos;
-              console.log(`Status de pedidos do fallback: ${pedidosMusicaAtivos}`);
-            }
-            return dadosFallback.dados;
-          }
-        }
-      } catch (error) {
-        console.error('Erro ao carregar fallback:', error);
-      }
-      return null;
-    }
-
-    // Função para carregar dados do cache
-    function carregarCache() {
-      try {
-        const cache = localStorage.getItem('musicasCache');
-        if (cache) {
-          const dadosCache = JSON.parse(cache);
-          const agora = Date.now();
-          
-          // Verificar se o cache ainda é válido
-          if (agora - dadosCache.timestamp < CACHE_DURACAO) {
-            // Carregar também o status dos pedidos de música
-            if (dadosCache.hasOwnProperty('pedidosMusicaAtivos')) {
-              pedidosMusicaAtivos = dadosCache.pedidosMusicaAtivos;
-              console.log(`Status de pedidos do cache: ${pedidosMusicaAtivos}`);
-            }
-            return dadosCache.dados;
-          }
-        }
-      } catch (error) {
-        console.error('Erro ao carregar cache:', error);
-      }
-      return null;
-    }
-
-    // Função para processar dados (seja do Sheets ou fallback)
-    function processarDados(dadosRaw) {
-      musicasData = dadosRaw;
-      categorias = [...new Set(dadosRaw.map(item => item.categoria))];
-      dadosCarregados = true;
-      ultimaAtualizacao = Date.now();
-      
-      // ALTERAÇÃO 1: Habilitar o botão "Pedir música" após carregar as categorias
-      const btnPedirMusica = document.getElementById('btnPedirMusica');
-      if (btnPedirMusica) {
-        btnPedirMusica.disabled = false;
-        console.log('Botão "Pedir música" habilitado após carregamento das categorias');
-      }
-    }
-
-    // Função para verificar status do site
-    function verificarStatusSite(csvText) {
-      const linhas = csvText.split('\n');
-      if (linhas.length > 1) {
-        const segundaLinha = linhas[1];
-        const campos = segundaLinha.split(',');
-        if (campos.length > 1) {
-          const statusSite = campos[1].replace(/^"|"$/g, '').trim().toLowerCase();
-          return statusSite === 'ativo';
-        }
-      }
-      return true; // Default para ativo se não conseguir ler
-    }
-
-    // NOVA FUNÇÃO: Verificar se a linha 1 tem cor diferente de branco
-    function verificarStatusPedidosMusica(csvText) {
-      // Como não temos acesso direto às cores via CSV, vamos usar uma abordagem alternativa
-      // Verificamos se existe um marcador especial na primeira linha
-      const linhas = csvText.split('\n');
-      if (linhas.length > 0) {
-        const primeiraLinha = linhas[0];
-        // Se a primeira linha contém um marcador especial (como "DESATIVADO" ou similar)
-        // ou se alguma célula específica contém um valor que indica desativação
-        const campos = primeiraLinha.split(',');
-        
-        // Verificar se algum campo da primeira linha contém marcadores de desativação
-        for (let campo of campos) {
-          const valorCampo = campo.replace(/^"|"$/g, '').trim().toLowerCase();
-          if (valorCampo.includes('desativado') || valorCampo.includes('inativo') || valorCampo.includes('off')) {
-            return false; // Pedidos desativados
-          }
-        }
-      }
-      
-      // Por padrão, assumir que os pedidos estão ativos
-      // NOTA: Para implementação completa, seria necessário usar a API do Google Sheets
-      // que permite acessar informações de formatação, incluindo cores de fundo
-      return true;
-    }
-
-    // Função para processar CSV de forma mais robusta
-    function processarCSV(csvText) {
-      const linhas = csvText.split('\n').filter(linha => linha.trim() !== '');
-      const dadosProcessados = [];
-      
-      // Pular a primeira linha (cabeçalho)
-      for (let i = 1; i < linhas.length; i++) {
-        const linha = linhas[i].trim();
-        if (!linha) continue;
-        
-        // Processar CSV considerando aspas e vírgulas dentro de campos
-        const campos = [];
-        let campoAtual = '';
-        let dentroDeAspas = false;
-        
-        for (let j = 0; j < linha.length; j++) {
-          const char = linha[j];
-          
-          if (char === '"') {
-            dentroDeAspas = !dentroDeAspas;
-          } else if (char === ',' && !dentroDeAspas) {
-            campos.push(campoAtual.trim());
-            campoAtual = '';
-          } else {
-            campoAtual += char;
-          }
-        }
-        
-        // Adicionar o último campo
-        campos.push(campoAtual.trim());
-        
-        // Verificar se temos pelo menos 2 campos (categoria e música)
-        if (campos.length >= 2) {
-          const categoria = campos[0].replace(/^"|"$/g, '').trim();
-          const musica = campos[1].replace(/^"|"$/g, '').trim();
-          
-          if (categoria && musica) {
-            dadosProcessados.push({ categoria, musica });
-          }
-        }
-      }
-      
-      return dadosProcessados;
-    }
-
-    // Função para carregar dados com retry
-   // Versão simplificada que usa APIs backend
+       // novo 
+    // NOVA FUNÇÃO (substitui toda a função carregarDados existente):
 async function carregarDados() {
   try {
-    // Buscar configurações do backend
-    const configResponse = await fetch('/api/get-app-config');
-    const config = await configResponse.json();
+    console.log('Loading...');
     
-    // Verificar status (manter sua lógica existente de verificação)
-    // ... código de verificação de status mantido ...
+    const response = await fetch('/.netlify/functions/get-musicas');
     
-    // Buscar categorias do backend (lógica agora oculta)
-    console.log('Carregando dados...');
-    const categoriasResponse = await fetch('/api/get-categories');
-    
-    if (!categoriasResponse.ok) {
-      throw new Error('Erro ao carregar categorias');
+    if (!response.ok) {
+      throw new Error('Erro ao carregar dados');
     }
     
-    const categoriasData = await categoriasResponse.json();
-    categorias = categoriasData.categorias;
+    const data = await response.json();
     
-    console.log(`Dados carregados: ${categorias.length} categorias`);
+    if (data.hasOwnProperty('pedidosMusicaAtivos')) {
+      pedidosMusicaAtivos = data.pedidosMusicaAtivos;
+    }
     
-    // Habilitar botão após carregar
+    appData = data.musicas || {};
+    
+    console.log(`Data loaded: ${Object.keys(appData).length} sections`);
+    
     const btnPedirMusica = document.getElementById('btnPedirMusica');
     if (btnPedirMusica) {
       btnPedirMusica.disabled = false;
     }
     
   } catch (error) {
-    console.error('Erro ao carregar dados:', error);
-    
-    // Fallback para dados em cache local (manter sua lógica existente)
-    const dadosFallback = carregarFallback();
-    if (dadosFallback && dadosFallback.length > 0) {
-      console.log('Usando dados em cache');
-      processarDados(dadosFallback);
-    } else {
-      alert('Erro ao carregar dados. Verifique sua conexão.');
-    }
+    console.error('Error loading data:', error);
+    alert('Erro ao carregar dados. Verifique sua conexão.');
   }
 }
 
-    // FUNÇÃO MODIFICADA: Verificar status antes de mostrar categorias
-    function mostrarCategorias() {
-      // Verificar se os pedidos de música estão ativos
-      if (!pedidosMusicaAtivos) {
-        // Mostrar pop-up de "show não começou"
-        document.getElementById('showNaoComecouOverlay').style.display = 'flex';
-        return;
-      }
+// novo 
+   function mostrarCategorias() {
+  if (!pedidosMusicaAtivos) {
+    document.getElementById('showNaoComecouOverlay').style.display = 'flex';
+    return;
+  }
 
-      // Se os pedidos estão ativos, proceder normalmente
-      document.getElementById('pagina-inicial').style.display = 'none';
-      document.getElementById('listaMusicas').style.display = 'none';
-      document.getElementById('formularioPedido').style.display = 'none';
-      document.getElementById('confirmacao').style.display = 'none';
-      document.getElementById('listaCategorias').style.display = 'block';
-      
-      const listaCategorias = document.getElementById('categorias');
-      listaCategorias.innerHTML = '';
-      
-      categorias.forEach(categoria => {
-        const li = document.createElement('li');
-        li.textContent = categoria;
-        li.onclick = () => mostrarMusicas(categoria);
-        listaCategorias.appendChild(li);
-      });
-    }
+  document.getElementById('pagina-inicial').style.display = 'none';
+  document.getElementById('listaMusicas').style.display = 'none';
+  document.getElementById('formularioPedido').style.display = 'none';
+  document.getElementById('confirmacao').style.display = 'none';
+  document.getElementById('listaCategorias').style.display = 'block';
+  
+  const listaCategorias = document.getElementById('categorias');
+  listaCategorias.innerHTML = '';
+  
+  Object.keys(appData).forEach(categoria => {
+    const li = document.createElement('li');
+    li.textContent = categoria;
+    li.onclick = () => mostrarMusicas(categoria);
+    listaCategorias.appendChild(li);
+  });
+}
+
 
     // NOVA FUNÇÃO: Fechar pop-up de "show não começou"
     function fecharShowNaoComecou() {
       document.getElementById('showNaoComecouOverlay').style.display = 'none';
     }
+// novo 
+    function mostrarMusicas(categoria) {
+  categoriaAtual = categoria;
+  document.getElementById('listaCategorias').style.display = 'none';
+  document.getElementById('listaMusicas').style.display = 'block';
+  
+  document.getElementById("listaMusicas").querySelector("h2").textContent = categoria;
+  
+  const musicas = appData[categoria] || [];
+  exibirMusicas(musicas.map(musica => ({ musica: musica })));
+}
 
-    async function mostrarMusicas(categoria) {
-  try {
-    categoriaAtual = categoria;
-    document.getElementById('listaCategorias').style.display = 'none';
-    document.getElementById('listaMusicas').style.display = 'block';
-    
-    document.getElementById("listaMusicas").querySelector("h2").textContent = categoria;
-    
-    // Buscar músicas do backend (lógica de filtro agora oculta)
-    console.log('Carregando músicas...');
-    const response = await fetch(`/api/get-songs?categoria=${encodeURIComponent(categoria)}`);
     
     if (!response.ok) {
       throw new Error('Erro ao carregar músicas');
@@ -1872,16 +1673,20 @@ async function carregarDados() {
         listaMusicas.appendChild(li);
       });
     }
-
+// novo 
     function filtrarMusicas() {
-      const termo = document.getElementById('buscaMusica').value.toLowerCase();
-      const termoSemAcentos = removerAcentos(termo);
-      const musicasDaCategoriaAtual = musicasData.filter(item => item.categoria === categoriaAtual);
-      const musicasFiltradas = musicasDaCategoriaAtual.filter(item => {
-        const musicaSemAcentos = removerAcentos(item.musica.toLowerCase());
-        return musicaSemAcentos.includes(termoSemAcentos);
-      });
-      exibirMusicas(musicasFiltradas);
+  const termo = document.getElementById('buscaMusica').value.toLowerCase();
+  const termoSemAcentos = removerAcentos(termo);
+  
+  const musicasDaCategoria = appData[categoriaAtual] || [];
+  const musicasFiltradas = musicasDaCategoria.filter(musica => {
+    const musicaSemAcentos = removerAcentos(musica.toLowerCase());
+    return musicaSemAcentos.includes(termoSemAcentos);
+  });
+  
+  exibirMusicas(musicasFiltradas.map(musica => ({ musica: musica })));
+}
+
     }
 
     function selecionarMusica(musica) {
