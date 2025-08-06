@@ -11,5 +11,6 @@
   "description": "",
   "dependencies": {
     "node-fetch": "^2.7.0"
+    "papaparse": "^5.4.1"
   }
 }
