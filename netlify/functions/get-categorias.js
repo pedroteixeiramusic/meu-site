@@ -1,6 +1,7 @@
 // Arquivo: get-categorias.js
 
 const fetch = require('node-fetch');
+
 let cache = null;
 let cacheTimestamp = null;
 const CACHE_DURATION = 15 * 60 * 1000; // 15 minutos
@@ -8,6 +9,8 @@ const CACHE_DURATION = 15 * 60 * 1000; // 15 minutos
 exports.handler = async () => {
   try {
     const agora = Date.now();
+
+    // Retorna cache se estiver válido
     if (cache && cacheTimestamp && agora - cacheTimestamp < CACHE_DURATION) {
       return {
         statusCode: 200,
@@ -15,8 +18,18 @@ exports.handler = async () => {
       };
     }
 
-    const url = 'CSV_URL'; // Substitua aqui pelo link correto do CSV
+    const url = process.env.CSV_URL; // <- Agora pega da variável de ambiente
+
+    if (!url) {
+      throw new Error('CSV_URL não definida nas variáveis de ambiente');
+    }
+
     const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`Falha ao buscar CSV: ${response.statusText}`);
+    }
+
     const csv = await response.text();
 
     const linhas = csv.trim().split('\n');
@@ -28,6 +41,7 @@ exports.handler = async () => {
       categorias[cat].push(titulo);
     }
 
+    // Armazena cache
     cache = categorias;
     cacheTimestamp = agora;
 
@@ -36,13 +50,10 @@ exports.handler = async () => {
       body: JSON.stringify({ categorias: Object.keys(categorias) })
     };
   } catch (erro) {
-    console.error(err); // ou "e", dependendo do nome usado no catch
+    console.error(erro);
     return {
       statusCode: 500,
       body: JSON.stringify({ erro: 'Erro ao carregar categorias' })
     };
   }
 };
-
-// O front-end usará /get-categorias para exibir os nomes das categorias
-// O CSV deve conter ao menos duas colunas: categoria e título
