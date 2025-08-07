@@ -8,6 +8,32 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
   <style>
+    #loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255,255,255,0.8);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+}
+
+.loading-icon {
+  font-size: 3rem;
+  animation: girar 1.2s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes girar {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
     :root {
       --color-primary: #5D1725;
       --color-secondary: #3A2618;
@@ -1223,6 +1249,18 @@
   </style>
 </head>
 <body>
+  <!-- LOADING -->
+<div id="loading" style="display: none;">
+  <div class="loading-icon">🎵</div>
+  <p>Carregando...</p>
+</div>
+
+<!-- CATEGORIAS -->
+<div id="categoria-container"></div>
+
+<!-- MÚSICAS -->
+<div id="musicas-container"></div>
+
   <!-- Tela de indisponibilidade -->
   <div id="indisponivelOverlay" class="indisponivel-overlay">
     <div class="indisponivel-content">
@@ -1941,9 +1979,83 @@ try {
       detectarEconomiaDados();
       carregarDados();
     });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const container = document.getElementById("categoria-container");
+  const musicasContainer = document.getElementById("musicas-container");
+  const loading = document.getElementById("loading");
+
+  function mostrarLoading() {
+    loading.style.display = "flex";
+  }
+
+  function esconderLoading() {
+    loading.style.display = "none";
+  }
+
+  async function carregarCategorias() {
+    mostrarLoading();
+    try {
+      const res = await fetch("/.netlify/functions/get-categorias");
+      const json = await res.json();
+      if (json.categorias && Array.isArray(json.categorias)) {
+        container.innerHTML = "";
+        json.categorias.forEach(categoria => {
+          const btn = document.createElement("button");
+          btn.textContent = categoria;
+          btn.className = "botao-categoria";
+          btn.addEventListener("click", () => carregarMusicas(categoria));
+          container.appendChild(btn);
+        });
+      } else {
+        container.innerHTML = "<p>Erro ao carregar categorias.</p>";
+      }
+    } catch (e) {
+      container.innerHTML = "<p>Erro ao carregar categorias.</p>";
+    }
+    esconderLoading();
+  }
+
+  async function carregarMusicas(categoria) {
+    mostrarLoading();
+    try {
+      const res = await fetch(`/.netlify/functions/get-lista?categoria=${encodeURIComponent(categoria)}`);
+      const json = await res.json();
+      if (json.lista && Array.isArray(json.lista)) {
+        musicasContainer.innerHTML = "";
+        json.lista.forEach(nome => {
+          const div = document.createElement("div");
+          div.className = "item-musica";
+          div.textContent = nome;
+
+          const botao = document.createElement("button");
+          botao.textContent = "Toca essa!";
+          botao.className = "botao-toca";
+          botao.addEventListener("click", () => abrirFormulario(nome));
+
+          div.appendChild(botao);
+          musicasContainer.appendChild(div);
+        });
+      } else {
+        musicasContainer.innerHTML = "<p>Nenhuma música encontrada.</p>";
+      }
+    } catch (e) {
+      musicasContainer.innerHTML = "<p>Erro ao carregar músicas.</p>";
+    }
+    esconderLoading();
+  }
+
+  function abrirFormulario(nomeMusica) {
+    // Aqui entra sua lógica atual do formulário
+    console.log("Abrir formulário com:", nomeMusica);
+  }
+
+  carregarCategorias();
+});
   </script>
 </body>
 </html>
+
 
 
 
