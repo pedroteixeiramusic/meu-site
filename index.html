@@ -1645,7 +1645,9 @@ async function carregarDados() {
      console.log("Lista de músicas recebida:", musicas);
   musicas.forEach(item => {
     // Verifica se é uma string ou objeto, e extrai o nome da música
-    const nomeMusica = typeof item === 'string' ? item : item.musica;
+    const nomeMusica = typeof item === 'string'
+  ? item
+  : (typeof item.musica === 'string' ? item.musica : item.musica?.nome || 'Música sem nome');
 
     // Força conversão em string e escapa apóstrofos para evitar erro no onclick
     const nomeSeguro = String(nomeMusica).replace(/'/g, "\\'");
@@ -1942,6 +1944,7 @@ try {
   </script>
 </body>
 </html>
+
 
 
 
