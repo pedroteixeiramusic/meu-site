@@ -36,7 +36,7 @@ exports.handler = async () => {
       body: JSON.stringify({ categorias: Object.keys(categorias) })
     };
   } catch (erro) {
-    console.error(error);
+    console.error(erro); // ou "e", dependendo do nome usado no catch
     return {
       statusCode: 500,
       body: JSON.stringify({ erro: 'Erro ao carregar categorias' })
