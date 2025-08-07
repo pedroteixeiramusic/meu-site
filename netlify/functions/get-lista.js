@@ -28,6 +28,7 @@ function parseCSV(csv) {
 
 exports.handler = async function (event) {
   const categoriaParam = event.queryStringParameters?.categoria;
+
   if (!categoriaParam) {
     return {
       statusCode: 400,
@@ -37,16 +38,29 @@ exports.handler = async function (event) {
 
   try {
     const agora = Date.now();
+
     if (!cache.data || agora - cache.timestamp > CACHE_DURATION) {
       const csv = await baixarCSV(CSV_URL);
       cache.data = parseCSV(csv);
       cache.timestamp = agora;
+      console.log('🔄 CSV recarregado');
     }
 
+    const normalizar = (str) =>
+      str?.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+
+    const categoriaNormalizada = normalizar(categoriaParam);
+
     const musicas = cache.data
-      .filter(item => item['Categoria']?.trim() === categoriaParam)
+      .filter(item => normalizar(item['Categoria']) === categoriaNormalizada)
       .map(item => item['Título']?.trim())
       .filter(Boolean);
+
+    console.log(`🎯 Categoria recebida: "${categoriaParam}"`);
+    console.log(`🎵 Músicas encontradas:`, musicas.length);
+    if (musicas.length === 0) {
+      console.log('⚠️ Nenhuma música encontrada para essa categoria.');
+    }
 
     return {
       statusCode: 200,
@@ -54,6 +68,7 @@ exports.handler = async function (event) {
       body: JSON.stringify({ lista: musicas }),
     };
   } catch (erro) {
+    console.error('❌ Erro ao processar lista:', erro);
     return {
       statusCode: 500,
       body: JSON.stringify({ erro: 'Erro ao processar dados' }),
