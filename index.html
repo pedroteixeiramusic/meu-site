@@ -1640,25 +1640,28 @@ async function carregarDados() {
 }
 
     function exibirMusicas(musicas) {
-      const listaMusicas = document.getElementById('musicas');
-      listaMusicas.innerHTML = '';
-      
-      musicas.forEach(item => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <div class="musica-item">
-            <span>${item.musica}</span>
-            <button class="btn-musica" onclick="selecionarMusica('${item.musica}')">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="5,3 19,12 5,21"></polygon>
-              </svg>
-              Toca essa!
-            </button>
-          </div>
-        `;
-        listaMusicas.appendChild(li);
-      });
-    }
+  const listaMusicas = document.getElementById('musicas');
+  listaMusicas.innerHTML = '';
+
+  musicas.forEach(item => {
+    const nomeMusica = typeof item === 'string' ? item : item.musica;
+
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <div class="musica-item">
+        <span>${nomeMusica}</span>
+        <button class="btn-musica" onclick="selecionarMusica('${nomeMusica.replace(/'/g, "\\'")}')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5,3 19,12 5,21"></polygon>
+          </svg>
+          Toca essa!
+        </button>
+      </div>
+    `;
+    listaMusicas.appendChild(li);
+  });
+}
+
 // novo 
     function filtrarMusicas() {
   const termo = document.getElementById('buscaMusica').value.toLowerCase();
@@ -1935,5 +1938,6 @@ try {
   </script>
 </body>
 </html>
+
 
 
