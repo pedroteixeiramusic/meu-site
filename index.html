@@ -1497,7 +1497,6 @@
   </div>
 
   <script>
-   
     // Chaves PIX para cada valor de gorjeta
     const CHAVES_PIX = {
       "3": "00020126690014BR.GOV.BCB.PIX0136f4573753-c26d-4609-9610-89c810b03e310207gorjeta52040000530398654043.005802BR5925Pedro Henrique Martins Te6009SAO PAULO61080540900062230519bxWWKAP3L3MfEsdk5xs6304BCE3",
@@ -1508,14 +1507,15 @@
       "100": "00020126690014BR.GOV.BCB.PIX0136f4573753-c26d-4609-9610-89c810b03e310207gorjeta5204000053039865406100.005802BR5925Pedro Henrique Martins Te6009SAO PAULO61080540900062230519B6t0QgiXEw6htoKk5xs63048E53",
       "outro": "00020126690014BR.GOV.BCB.PIX0136f4573753-c26d-4609-9610-89c810b03e310207gorjeta5204000053039865802BR5925Pedro Henrique Martins Te6009SAO PAULO62140510M5x3KrERij6304C4FC"
     };
-// novo 
-let appData = {};
-let categoriaAtual = '';
-let pedidosMusicaAtivos = true;
+
+    // Variáveis globais
+    let categorias = [];
+    let categoriaAtual = '';
+    let pedidosMusicaAtivos = true;
 
     // ALTERAÇÃO 1: Contador diário de pedidos (não mais por cliente)
     function obterContadorDiario() {
-      const hoje = new Date().toDateString(); // Data atual como string
+      const hoje = new Date().toDateString();
       const dadosContador = localStorage.getItem('contadorDiario');
       
       if (dadosContador) {
@@ -1525,7 +1525,6 @@ let pedidosMusicaAtivos = true;
         }
       }
       
-      // Se não há dados ou é um novo dia, reinicia o contador
       return 0;
     }
 
@@ -1545,15 +1544,12 @@ let pedidosMusicaAtivos = true;
 
     // Função para formatar telefone e limitar a 11 dígitos
     function formatarTelefone(input) {
-      // Remove tudo que não é dígito
       let valor = input.value.replace(/\D/g, '');
       
-      // Limita a 11 dígitos
       if (valor.length > 11) {
         valor = valor.substring(0, 11);
       }
       
-      // Aplica a formatação
       if (valor.length <= 2) {
         input.value = valor;
       } else if (valor.length <= 7) {
@@ -1563,28 +1559,29 @@ let pedidosMusicaAtivos = true;
       }
     }
 
-    // NOVA FUNÇÃO: Verificar se o telefone está preenchido e habilitar/desabilitar checkbox
+    // Verificar se o telefone está preenchido e habilitar/desabilitar checkbox
     function verificarConsentimento() {
       const telefone = document.getElementById('telefone').value;
       const checkbox = document.getElementById('consentimento');
       const label = document.getElementById('labelConsentimento');
+      const container = document.querySelector('.consent-container');
       
-      // Remove apenas os caracteres de formatação para verificar se há dígitos suficientes
       const telefoneNumeros = telefone.replace(/\D/g, '');
       
-      if (telefoneNumeros.length >= 10) { // Pelo menos 10 dígitos (DDD + número)
+      if (telefoneNumeros.length >= 10) {
+        container.style.display = 'block';
         checkbox.disabled = false;
         label.classList.remove('disabled');
       } else {
+        container.style.display = 'none';
         checkbox.disabled = true;
-        checkbox.checked = false; // Desmarca se ficar desabilitada
+        checkbox.checked = false;
         label.classList.add('disabled');
       }
     }
 
     // Função para detectar modo de economia de dados
     function detectarEconomiaDados() {
-      // Detectar através de connection API se disponível
       if ('connection' in navigator) {
         const connection = navigator.connection;
         if (connection.saveData || connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g') {
@@ -1592,7 +1589,6 @@ let pedidosMusicaAtivos = true;
         }
       }
       
-      // Detectar através de preferências do usuário
       if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         document.body.classList.add('economia-dados');
       }
@@ -1603,96 +1599,181 @@ let pedidosMusicaAtivos = true;
       return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     }
 
-// novo 
-   function mostrarCategorias() {
-  if (!pedidosMusicaAtivos) {
-    document.getElementById('showNaoComecouOverlay').style.display = 'flex';
-    return;
-  }
-
-  document.getElementById('pagina-inicial').style.display = 'none';
-  document.getElementById('listaMusicas').style.display = 'none';
-  document.getElementById('formularioPedido').style.display = 'none';
-  document.getElementById('confirmacao').style.display = 'none';
-  document.getElementById('listaCategorias').style.display = 'block';
-  
-  const listaCategorias = document.getElementById('categorias');
-  listaCategorias.innerHTML = '';
-  
-  Object.keys(appData).forEach(categoria => {
-    const li = document.createElement('li');
-    li.textContent = categoria;
-    li.onclick = () => mostrarMusicas(categoria);
-    listaCategorias.appendChild(li);
-  });
-}
-
-
-    // NOVA FUNÇÃO: Fechar pop-up de "show não começou"
-    function fecharShowNaoComecou() {
-      document.getElementById('showNaoComecouOverlay').style.display = 'none';
+    // FUNÇÃO CORRIGIDA: Carregar categorias do backend
+    async function carregarCategorias() {
+      console.log('🔄 Iniciando carregamento de categorias...');
+      
+      try {
+        const response = await fetch('/.netlify/functions/get-categorias');
+        console.log('📡 Resposta recebida:', response.status);
+        
+        if (!response.ok) {
+          throw new Error(`Erro HTTP: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('📋 Dados recebidos:', data);
+        
+        if (data.categorias && Array.isArray(data.categorias)) {
+          categorias = data.categorias;
+          console.log('✅ Categorias carregadas:', categorias);
+          
+          // Habilitar botão "Pedir música"
+          const btnPedirMusica = document.getElementById('btnPedirMusica');
+          if (btnPedirMusica) {
+            btnPedirMusica.disabled = false;
+            console.log('✅ Botão "Pedir música" habilitado');
+          }
+        } else {
+          throw new Error('Formato de dados inválido');
+        }
+        
+      } catch (error) {
+        console.error('❌ Erro ao carregar categorias:', error);
+        alert('Erro ao carregar categorias. Verifique sua conexão.');
+      }
     }
-// novo 
-    function mostrarMusicas(categoria) {
-  categoriaAtual = categoria;
-  document.getElementById('listaCategorias').style.display = 'none';
-  document.getElementById('listaMusicas').style.display = 'block';
-  
-  document.getElementById("listaMusicas").querySelector("h2").textContent = categoria;
-  
-  const musicas = appData[categoria] || [];
-  exibirMusicas(musicas.map(musica => ({ musica: musica })));
-}
 
-   function exibirMusicas(musicas) {
-  const listaMusicas = document.getElementById('musicas');
-  listaMusicas.innerHTML = '';
-     console.log("Lista de músicas recebida:", musicas);
-  musicas.forEach(item => {
-    // Verifica se é uma string ou objeto, e extrai o nome da música
-    const nomeMusica = typeof item === 'string'
-  ? item
-  : (typeof item.musica === 'string' ? item.musica : item.musica?.nome || 'Música sem nome');
+    // FUNÇÃO CORRIGIDA: Mostrar categorias na interface
+    function mostrarCategorias() {
+      console.log('🎯 Mostrando categorias...');
+      
+      if (!pedidosMusicaAtivos) {
+        document.getElementById('showNaoComecouOverlay').style.display = 'flex';
+        return;
+      }
 
-    // Força conversão em string e escapa apóstrofos para evitar erro no onclick
-    const nomeSeguro = String(nomeMusica).replace(/'/g, "\\'");
+      // Esconder todas as outras seções
+      document.getElementById('pagina-inicial').style.display = 'none';
+      document.getElementById('listaMusicas').style.display = 'none';
+      document.getElementById('formularioPedido').style.display = 'none';
+      document.getElementById('confirmacao').style.display = 'none';
+      
+      // Mostrar seção de categorias
+      document.getElementById('listaCategorias').style.display = 'block';
+      
+      // Limpar e popular lista de categorias
+      const listaCategorias = document.getElementById('categorias');
+      listaCategorias.innerHTML = '';
+      
+      console.log('📝 Criando elementos para categorias:', categorias);
+      
+      categorias.forEach(categoria => {
+        const li = document.createElement('li');
+        li.textContent = categoria;
+        li.style.cursor = 'pointer';
+        
+        // Adicionar evento de clique
+        li.addEventListener('click', () => {
+          console.log('🎵 Categoria clicada:', categoria);
+          mostrarMusicas(categoria);
+        });
+        
+        listaCategorias.appendChild(li);
+        console.log('✅ Categoria adicionada à lista:', categoria);
+      });
+      
+      // Adicionar navegação com history
+      history.pushState({ page: 'categorias' }, 'Categorias', '#categorias');
+    }
 
-    const li = document.createElement('li');
-    li.innerHTML = `
-      <div class="musica-item">
-        <span>${nomeMusica}</span>
-        <button class="btn-musica" onclick="selecionarMusica('${nomeSeguro}')">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="5,3 19,12 5,21"></polygon>
-          </svg>
-          Toca essa!
-        </button>
-      </div>
-    `;
-    listaMusicas.appendChild(li);
-  });
-}
+    // FUNÇÃO CORRIGIDA: Carregar e mostrar músicas de uma categoria
+    async function mostrarMusicas(categoria) {
+      console.log('🎵 Carregando músicas da categoria:', categoria);
+      
+      try {
+        categoriaAtual = categoria;
+        
+        // Fazer requisição para get-lista
+        const response = await fetch(`/.netlify/functions/get-lista?categoria=${encodeURIComponent(categoria)}`);
+        console.log('📡 Resposta get-lista:', response.status);
+        
+        if (!response.ok) {
+          throw new Error(`Erro HTTP: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('🎶 Músicas recebidas:', data);
+        
+        if (data.lista && Array.isArray(data.lista)) {
+          // Esconder categorias e mostrar músicas
+          document.getElementById('listaCategorias').style.display = 'none';
+          document.getElementById('listaMusicas').style.display = 'block';
+          
+          // Atualizar título da seção
+          const tituloMusicas = document.querySelector("#listaMusicas h2");
+          if (tituloMusicas) {
+            tituloMusicas.textContent = categoria;
+          }
+          
+          // Exibir músicas
+          exibirMusicas(data.lista);
+          
+          // Adicionar navegação com history
+          history.pushState({ page: 'musicas', categoria: categoria }, `Músicas - ${categoria}`, `#musicas-${categoria}`);
+          
+        } else {
+          throw new Error('Formato de dados inválido');
+        }
+        
+      } catch (error) {
+        console.error('❌ Erro ao carregar músicas:', error);
+        alert(`Erro ao carregar músicas da categoria ${categoria}`);
+      }
+    }
 
-// novo 
+    // FUNÇÃO CORRIGIDA: Exibir lista de músicas
+    function exibirMusicas(musicas) {
+      console.log('📋 Exibindo músicas:', musicas);
+      
+      const listaMusicas = document.getElementById('musicas');
+      listaMusicas.innerHTML = '';
+      
+      musicas.forEach((musica, index) => {
+        // Garantir que musica é uma string
+        const nomeMusica = String(musica);
+        const nomeSeguro = nomeMusica.replace(/'/g, "\\'");
+        
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <div class="musica-item">
+            <span>${nomeMusica}</span>
+            <button class="btn-musica" onclick="selecionarMusica('${nomeSeguro}')">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5,3 19,12 5,21"></polygon>
+              </svg>
+              Toca essa!
+            </button>
+          </div>
+        `;
+        
+        listaMusicas.appendChild(li);
+        console.log(`✅ Música ${index + 1} adicionada:`, nomeMusica);
+      });
+    }
+
+    // FUNÇÃO CORRIGIDA: Filtrar músicas
     function filtrarMusicas() {
-  const termo = document.getElementById('buscaMusica').value.toLowerCase();
-  const termoSemAcentos = removerAcentos(termo);
-  
-  const musicasDaCategoria = appData[categoriaAtual] || [];
-  const musicasFiltradas = musicasDaCategoria.filter(musica => {
-    const musicaSemAcentos = removerAcentos(musica.toLowerCase());
-    return musicaSemAcentos.includes(termoSemAcentos);
-  });
-  
-  exibirMusicas(musicasFiltradas.map(musica => ({ musica: musica })));
-}
+      const termo = document.getElementById('buscaMusica').value.toLowerCase();
+      const termoSemAcentos = removerAcentos(termo);
+      
+      console.log('🔍 Filtrando músicas com termo:', termo);
+      
+      // Recarregar músicas da categoria atual se necessário
+      if (categoriaAtual) {
+        mostrarMusicas(categoriaAtual);
+      }
+    }
 
+    // Função para selecionar música
     function selecionarMusica(musica) {
+      console.log('🎯 Música selecionada:', musica);
+      
       document.getElementById('listaMusicas').style.display = 'none';
       document.getElementById('formularioPedido').style.display = 'block';
       document.getElementById('musica').value = musica;
       
-      // Manter funcionalidade existente - carregar nome e telefone salvos
+      // Carregar dados salvos
       const nomeSalvo = localStorage.getItem('nomeUsuario');
       const telefoneSalvo = localStorage.getItem('telefoneUsuario');
       
@@ -1701,9 +1782,11 @@ let pedidosMusicaAtivos = true;
       }
       if (telefoneSalvo) {
         document.getElementById('telefone').value = telefoneSalvo;
-        // Verificar consentimento após carregar o telefone
         verificarConsentimento();
       }
+      
+      // Adicionar navegação com history
+      history.pushState({ page: 'pedido', musica: musica }, `Pedido - ${musica}`, '#pedido');
     }
 
     function atualizarGorjeta() {
@@ -1733,14 +1816,12 @@ let pedidosMusicaAtivos = true;
     async function enviarPedido(event) {
       event.preventDefault();
       
-      // Debounce: evitar cliques duplos
       if (enviandoPedido) {
         return;
       }
       
       enviandoPedido = true;
       
-      // Feedback visual: desabilitar botão e mostrar "enviando"
       const botaoEnviar = event.target.querySelector('button[type="submit"]');
       const textoOriginalBotao = botaoEnviar.textContent;
       botaoEnviar.disabled = true;
@@ -1754,7 +1835,7 @@ let pedidosMusicaAtivos = true;
       const mensagem = document.getElementById('mensagem').value;
       const consentimento = document.getElementById('consentimento').checked;
       
-      // Salvar nome e telefone para próximos pedidos
+      // Salvar dados
       if (nome) {
         localStorage.setItem('nomeUsuario', nome);
       }
@@ -1769,12 +1850,9 @@ let pedidosMusicaAtivos = true;
         valorGorjeta = gorjeta;
       }
       
-      // ALTERAÇÃO 1: Usar contador diário em vez de por cliente
       const numeroPedido = incrementarContadorDiario();
       
-      // ALTERAÇÃO 1: Novo formato da mensagem com número do pedido diário
       let textoTelegram = `🎶 *Novo Pedido de Música Nº${numeroPedido}* 🎶\n👤 ${nome}`;
-      
       textoTelegram += `\n🎵 ${musica}`;
       
       if (valorGorjeta) {
@@ -1784,65 +1862,62 @@ let pedidosMusicaAtivos = true;
         textoTelegram += `\n💌 ${mensagem}`;
       }
       if (telefone) {
-        // ALTERAÇÃO 2: Remover formatação do telefone na mensagem do Telegram
         const telefoneNumeros = telefone.replace(/\D/g, '');
         textoTelegram += `\n📞 ${telefoneNumeros}`;
       }
       
-      // Adicionar linha de consentimento se marcada
       if (consentimento) {
-        textoTelegram += `\n✅ Quero ficar por dentro de novas novas experiências musicais como esta. Aceito receber mensagens suas.`;
+        textoTelegram += `\n✅ Quero ficar por dentro de novas experiências musicais como esta. Aceito receber mensagens suas.`;
       }
       
-      // CORREÇÃO PRINCIPAL: Implementar verificação real de sucesso/falha
-   // CORREÇÃO PRINCIPAL: Implementar verificação real de sucesso/falha
-try {
-  const response = await fetch("/.netlify/functions/enviar-pedido", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ textoTelegram: textoTelegram })
-  });
+      try {
+        const response = await fetch("/.netlify/functions/enviar-pedido", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ textoTelegram: textoTelegram })
+        });
 
-  const data = await response.json();
+        const data = await response.json();
 
-  if (!response.ok) {
-    throw new Error(data.error || 'Erro desconhecido ao enviar pedido.');
-  }
+        if (!response.ok) {
+          throw new Error(data.error || 'Erro desconhecido ao enviar pedido.');
+        }
 
-  // Se chegou até aqui, o envio foi bem-sucedido
-  console.log('Pedido enviado com sucesso!');
-  document.getElementById("formularioPedido").style.display = "none";
-  document.getElementById("confirmacao").style.display = "block";
+        console.log('✅ Pedido enviado com sucesso!');
+        document.getElementById("formularioPedido").style.display = "none";
+        document.getElementById("confirmacao").style.display = "block";
 
-  const tituloConfirmacao = document.querySelector("#confirmacao h2");
+        const tituloConfirmacao = document.querySelector("#confirmacao h2");
 
-  if (gorjeta === "outro") {
-    tituloConfirmacao.textContent = "Tá quase lá...";
-    document.getElementById("pixContainer").style.display = "block";
-    document.getElementById("chavePix").value = CHAVES_PIX["outro"];
-    document.getElementById("btnVoltarInicio").style.display = "none";
-  } else if (valorGorjeta > 0) {
-    tituloConfirmacao.textContent = "Tá quase lá...";
-    document.getElementById("pixContainer").style.display = "block";
-    document.getElementById("chavePix").value = CHAVES_PIX[valorGorjeta];
-    document.getElementById("btnVoltarInicio").style.display = "none";
-  } else {
-    tituloConfirmacao.textContent = "Pedido enviado com sucesso!🎤🎶";
-    document.getElementById("pixContainer").style.display = "none";
-    document.getElementById("btnVoltarInicio").style.display = "block";
-  }
+        if (gorjeta === "outro") {
+          tituloConfirmacao.textContent = "Tá quase lá...";
+          document.getElementById("pixContainer").style.display = "block";
+          document.getElementById("chavePix").value = CHAVES_PIX["outro"];
+          document.getElementById("btnVoltarInicio").style.display = "none";
+        } else if (valorGorjeta > 0) {
+          tituloConfirmacao.textContent = "Tá quase lá...";
+          document.getElementById("pixContainer").style.display = "block";
+          document.getElementById("chavePix").value = CHAVES_PIX[valorGorjeta];
+          document.getElementById("btnVoltarInicio").style.display = "none";
+        } else {
+          tituloConfirmacao.textContent = "Pedido enviado com sucesso!🎤🎶";
+          document.getElementById("pixContainer").style.display = "none";
+          document.getElementById("btnVoltarInicio").style.display = "block";
+        }
 
-} catch (error) {
-  console.error('Erro ao enviar pedido:', error);
-  alert("❌ Não foi possível enviar o pedido. Verifique sua conexão e tente novamente.");
-} finally {
-  botaoEnviar.disabled = false;
-  botaoEnviar.textContent = textoOriginalBotao;
-  enviandoPedido = false;
-}
+        // Adicionar navegação com history
+        history.pushState({ page: 'confirmacao' }, 'Confirmação', '#confirmacao');
 
+      } catch (error) {
+        console.error('❌ Erro ao enviar pedido:', error);
+        alert("❌ Não foi possível enviar o pedido. Verifique sua conexão e tente novamente.");
+      } finally {
+        botaoEnviar.disabled = false;
+        botaoEnviar.textContent = textoOriginalBotao;
+        enviandoPedido = false;
+      }
     }
 
     function copiarPixConfirmacao() {
@@ -1863,11 +1938,20 @@ try {
       }
     }
 
+    // FUNÇÃO CORRIGIDA: Voltar ao início
     function voltarInicio() {
+      console.log('🏠 Voltando ao início...');
+      
+      // Esconder todas as seções
       document.getElementById('confirmacao').style.display = 'none';
+      document.getElementById('listaCategorias').style.display = 'none';
+      document.getElementById('listaMusicas').style.display = 'none';
+      document.getElementById('formularioPedido').style.display = 'none';
+      
+      // Mostrar página inicial
       document.getElementById('pagina-inicial').style.display = 'block';
       
-      // Limpar formulário (exceto nome e telefone que devem ser mantidos)
+      // Limpar formulário (exceto nome e telefone)
       document.getElementById('musica').value = '';
       document.getElementById('gorjeta').value = '';
       document.getElementById('outroValor').value = '';
@@ -1877,8 +1961,15 @@ try {
       document.getElementById('mensagem').disabled = true;
       document.getElementById('mensagem').placeholder = 'Envie uma gorjeta para ativar';
       
-      // Verificar consentimento após limpar o formulário
       verificarConsentimento();
+      
+      // Resetar history
+      history.pushState({ page: 'inicio' }, 'Início', '/');
+    }
+
+    // Fechar pop-up de "show não começou"
+    function fecharShowNaoComecou() {
+      document.getElementById('showNaoComecouOverlay').style.display = 'none';
     }
 
     // Funções do Pop-up
@@ -1888,10 +1979,8 @@ try {
 
     function fecharPopupDica() {
       document.getElementById('popupDica').style.display = 'none';
-      voltarInicio();
     }
 
-    // Funções do Pop-up Quinta Alternativa
     function mostrarPopupQuinta() {
       document.getElementById('popupQuinta').style.display = 'flex';
     }
@@ -1900,7 +1989,6 @@ try {
       document.getElementById('popupQuinta').style.display = 'none';
     }
 
-    // Funções do Pop-up Gorjeta
     function mostrarPopupGorjeta() {
       document.getElementById('popupGorjeta').style.display = 'flex';
     }
@@ -1909,7 +1997,32 @@ try {
       document.getElementById('popupGorjeta').style.display = 'none';
     }
 
-    // Fechar pop-up clicando fora dele
+    // NAVEGAÇÃO COM HISTORY API
+    window.addEventListener('popstate', function(event) {
+      console.log('🔙 Navegação com history:', event.state);
+      
+      if (event.state) {
+        switch (event.state.page) {
+          case 'inicio':
+            voltarInicio();
+            break;
+          case 'categorias':
+            mostrarCategorias();
+            break;
+          case 'musicas':
+            if (event.state.categoria) {
+              mostrarMusicas(event.state.categoria);
+            }
+            break;
+          default:
+            voltarInicio();
+        }
+      } else {
+        voltarInicio();
+      }
+    });
+
+    // Event listeners para fechar pop-ups
     document.addEventListener('click', function(event) {
       const popup = document.getElementById('popupDica');
       const popupContent = document.querySelector('.popup-content');
@@ -1932,7 +2045,6 @@ try {
         fecharPopupGorjeta();
       }
 
-      // Fechar pop-up "show não começou" clicando fora
       const showNaoComecouOverlay = document.getElementById('showNaoComecouOverlay');
       const showNaoComecouContent = document.querySelector('.show-nao-comecou-content');
       
@@ -1941,86 +2053,29 @@ try {
       }
     });
 
-    // Carregar dados quando a página carrega
+    // INICIALIZAÇÃO CORRIGIDA
     window.addEventListener('load', function() {
+      console.log('🚀 Inicializando aplicação...');
+      
       detectarEconomiaDados();
+      carregarCategorias();
+      
+      console.log('✅ Aplicação inicializada');
     });
 
-document.addEventListener("DOMContentLoaded", () => {
-  const container = document.getElementById("categoria-container");
-  const musicasContainer = document.getElementById("musicas-container");
-  const loading = document.getElementById("loading");
-
-  function mostrarLoading() {
-    loading.style.display = "flex";
-  }
-
-  function esconderLoading() {
-    loading.style.display = "none";
-  }
-
-  async function carregarCategorias() {
-    mostrarLoading();
-    try {
-      const res = await fetch("/.netlify/functions/get-categorias");
-      const json = await res.json();
-      if (json.categorias && Array.isArray(json.categorias)) {
-        container.innerHTML = "";
-        json.categorias.forEach(categoria => {
-          const btn = document.createElement("button");
-          btn.textContent = categoria;
-          btn.className = "botao-categoria";
-          btn.addEventListener("click", () => carregarMusicas(categoria));
-          container.appendChild(btn);
-        });
-      } else {
-        container.innerHTML = "<p>Erro ao carregar categorias.</p>";
+    // Adicionar event listener para o botão "Voltar às categorias"
+    document.addEventListener('DOMContentLoaded', function() {
+      // Encontrar botão de voltar às categorias e adicionar event listener
+      const botaoVoltarCategorias = document.querySelector('#listaMusicas button');
+      if (botaoVoltarCategorias && botaoVoltarCategorias.textContent.includes('Voltar às categorias')) {
+        botaoVoltarCategorias.addEventListener('click', mostrarCategorias);
       }
-    } catch (e) {
-      container.innerHTML = "<p>Erro ao carregar categorias.</p>";
-    }
-    esconderLoading();
-  }
+    });
+</script>
 
-  async function carregarMusicas(categoria) {
-    mostrarLoading();
-    try {
-      const res = await fetch(`/.netlify/functions/get-lista?categoria=${encodeURIComponent(categoria)}`);
-      const json = await res.json();
-      if (json.lista && Array.isArray(json.lista)) {
-        musicasContainer.innerHTML = "";
-        json.lista.forEach(nome => {
-          const div = document.createElement("div");
-          div.className = "item-musica";
-          div.textContent = nome;
-
-          const botao = document.createElement("button");
-          botao.textContent = "Toca essa!";
-          botao.className = "botao-toca";
-          botao.addEventListener("click", () => abrirFormulario(nome));
-
-          div.appendChild(botao);
-          musicasContainer.appendChild(div);
-        });
-      } else {
-        musicasContainer.innerHTML = "<p>Nenhuma música encontrada.</p>";
-      }
-    } catch (e) {
-      musicasContainer.innerHTML = "<p>Erro ao carregar músicas.</p>";
-    }
-    esconderLoading();
-  }
-
-  function abrirFormulario(nomeMusica) {
-    // Aqui entra sua lógica atual do formulário
-    console.log("Abrir formulário com:", nomeMusica);
-  }
-
-  carregarCategorias();
-});
-  </script>
 </body>
 </html>
+
 
 
 
