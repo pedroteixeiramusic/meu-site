@@ -83,18 +83,23 @@ exports.handler = async function () {
     };
 
     return {
-      statusCode: 200,
-      body: JSON.stringify(resultado)
-    };
+  statusCode: 200,
+  body: JSON.stringify({
+    musicas: resultado.map(m => m.musica)
+  })
+};
+
   } catch (err) {
     console.error('Erro ao carregar ou processar CSV:', err);
 
     if (cache.data) {
-      return {
-        statusCode: 200,
-        body: JSON.stringify(cache.data)
-      };
-    }
+  return {
+    statusCode: 200,
+    body: JSON.stringify({
+      musicas: cache.data.map(m => m.musica)
+    })
+  };
+}
 
     return {
       statusCode: 500,
