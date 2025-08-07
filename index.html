@@ -1603,39 +1603,6 @@ let pedidosMusicaAtivos = true;
       return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     }
 
-       // novo 
-    // NOVA FUNÇÃO (substitui toda a função carregarDados existente):
-async function carregarDados() {
-  try {
-    console.log('Loading...');
-    
-    const response = await fetch('/.netlify/functions/get-musicas');
-    
-    if (!response.ok) {
-      throw new Error('Erro ao carregar dados');
-    }
-    
-    const data = await response.json();
-    
-    if (data.hasOwnProperty('pedidosMusicaAtivos')) {
-      pedidosMusicaAtivos = data.pedidosMusicaAtivos;
-    }
-    
-    appData = data.musicas || {};
-    
-    console.log(`Data loaded: ${Object.keys(appData).length} sections`);
-    
-    const btnPedirMusica = document.getElementById('btnPedirMusica');
-    if (btnPedirMusica) {
-      btnPedirMusica.disabled = false;
-    }
-    
-  } catch (error) {
-    console.error('Error loading data:', error);
-    alert('Erro ao carregar dados. Verifique sua conexão.');
-  }
-}
-
 // novo 
    function mostrarCategorias() {
   if (!pedidosMusicaAtivos) {
@@ -2055,6 +2022,7 @@ document.addEventListener("DOMContentLoaded", () => {
   </script>
 </body>
 </html>
+
 
 
 
