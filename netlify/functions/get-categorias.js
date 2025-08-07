@@ -15,7 +15,7 @@ exports.handler = async () => {
       };
     }
 
-    const url = 'URL_DO_CSV_PUBLICO'; // Substitua aqui pelo link correto do CSV
+    const url = 'CSV_URL'; // Substitua aqui pelo link correto do CSV
     const response = await fetch(url);
     const csv = await response.text();
 
