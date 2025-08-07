@@ -1677,50 +1677,62 @@
       history.pushState({ page: 'categorias' }, 'Categorias', '#categorias');
     }
 
-    // FUNÇÃO CORRIGIDA: Carregar e mostrar músicas de uma categoria
-    async function mostrarMusicas(categoria) {
-      console.log('🎵 Carregando músicas da categoria:', categoria);
-      
-      try {
-        categoriaAtual = categoria;
-        
-        // Fazer requisição para get-lista
-        const response = await fetch(`/.netlify/functions/get-lista?categoria=${encodeURIComponent(categoria)}`);
-        console.log('📡 Resposta get-lista:', response.status);
-        
-        if (!response.ok) {
-          throw new Error(`Erro HTTP: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('🎶 Músicas recebidas:', data);
-        
-        if (data.lista && Array.isArray(data.lista)) {
-          // Esconder categorias e mostrar músicas
-          document.getElementById('listaCategorias').style.display = 'none';
-          document.getElementById('listaMusicas').style.display = 'block';
-          
-          // Atualizar título da seção
-          const tituloMusicas = document.querySelector("#listaMusicas h2");
-          if (tituloMusicas) {
-            tituloMusicas.textContent = categoria;
-          }
-          
-          // Exibir músicas
-          exibirMusicas(data.lista);
-          
-          // Adicionar navegação com history
-          history.pushState({ page: 'musicas', categoria: categoria }, `Músicas - ${categoria}`, `#musicas-${categoria}`);
-          
-        } else {
-          throw new Error('Formato de dados inválido');
-        }
-        
-      } catch (error) {
-        console.error('❌ Erro ao carregar músicas:', error);
-        alert(`Erro ao carregar músicas da categoria ${categoria}`);
-      }
+   // FUNÇÃO CORRIGIDA: Carregar e mostrar músicas de uma categoria
+async function mostrarMusicas(categoria) {
+  console.log('🎵 Carregando músicas da categoria:', categoria);
+  
+  try {
+    categoriaAtual = categoria;
+    
+    // Esconder categorias e mostrar seção de músicas ANTES da requisição
+    document.getElementById('listaCategorias').style.display = 'none';
+    document.getElementById('listaMusicas').style.display = 'block';
+    
+    // Atualizar título da seção
+    const tituloMusicas = document.querySelector("#listaMusicas h2");
+    if (tituloMusicas) {
+      tituloMusicas.textContent = categoria;
     }
+    
+    // Mostrar loading
+    const listaMusicas = document.getElementById('musicas');
+    listaMusicas.innerHTML = '<li style="text-align: center; padding: 20px;">Carregando músicas...</li>';
+    
+    // Fazer requisição para get-lista
+    const response = await fetch(`/.netlify/functions/get-lista?categoria=${encodeURIComponent(categoria)}`);
+    console.log('📡 Resposta get-lista:', response.status);
+    
+    if (!response.ok) {
+      throw new Error(`Erro HTTP: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('🎶 Dados completos recebidos:', data);
+    console.log('🎶 Lista de músicas:', data.lista);
+    
+    if (data.lista && Array.isArray(data.lista) && data.lista.length > 0) {
+      // Exibir músicas
+      exibirMusicas(data.lista);
+      console.log('✅ Músicas exibidas com sucesso');
+    } else {
+      // Mostrar mensagem de categoria vazia
+      listaMusicas.innerHTML = '<li style="text-align: center; padding: 20px; color: #888;">Nenhuma música encontrada nesta categoria.</li>';
+      console.log('⚠️ Categoria vazia ou dados inválidos');
+    }
+    
+    // Adicionar navegação com history
+    history.pushState({ page: 'musicas', categoria: categoria }, `Músicas - ${categoria}`, `#musicas-${categoria}`);
+    
+  } catch (error) {
+    console.error('❌ Erro ao carregar músicas:', error);
+    
+    // Mostrar erro na interface
+    const listaMusicas = document.getElementById('musicas');
+    listaMusicas.innerHTML = '<li style="text-align: center; padding: 20px; color: #ff6b6b;">Erro ao carregar músicas. Tente novamente.</li>';
+    
+    alert(`Erro ao carregar músicas da categoria ${categoria}`);
+  }
+}
 
     // FUNÇÃO CORRIGIDA: Exibir lista de músicas
     function exibirMusicas(musicas) {
@@ -2075,6 +2087,7 @@
 
 </body>
 </html>
+
 
 
 
