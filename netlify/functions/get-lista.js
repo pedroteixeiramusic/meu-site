@@ -1,33 +1,38 @@
 // functions/get-lista.js
 
-const getPlanilhaOrganizada = require("../utils/fetchPlanilha");
+const fetchPlanilha = require('../utils/fetchPlanilha');
 
 exports.handler = async function (event) {
-  const categoria = decodeURIComponent(event.queryStringParameters?.categoria || "").trim();
+  const categoriaAlvo = event.queryStringParameters?.categoria;
 
-  if (!categoria) {
+  if (!categoriaAlvo) {
     return {
       statusCode: 400,
-      body: JSON.stringify({ error: "Categoria não fornecida" }),
+      body: JSON.stringify({ erro: 'Categoria não especificada' }),
     };
   }
 
   try {
-    const dados = await getPlanilhaOrganizada();
-    const musicas = dados
-      .filter((item) => item.categoria === categoria)
-      .map((item) => item.musica)
-      .sort();
+    const dados = await fetchPlanilha();
+
+    const lista = dados
+      .filter(linha =>
+        linha['categoria'] === categoriaAlvo &&
+        linha['música'] &&
+        linha['música'] !== 'off'
+      )
+      .map(linha => linha['música']) // agora acessando com colchetes e acento
+      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ lista: musicas }),
+      body: JSON.stringify({ lista }),
     };
-  } catch (error) {
-    console.error("Erro ao obter lista:", error);
+  } catch (erro) {
+    console.error('Erro ao obter lista:', erro);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Erro ao obter lista de músicas" }),
+      body: JSON.stringify({ erro: 'Erro ao carregar lista' }),
     };
   }
 };
