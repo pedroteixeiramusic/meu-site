@@ -1,14 +1,19 @@
 // functions/get-categorias.js
 
-const getPlanilhaOrganizada = require("../utils/fetchPlanilha");
+const fetchPlanilha = require('../utils/fetchPlanilha');
 
 exports.handler = async function () {
   try {
-    const dados = await getPlanilhaOrganizada();
+    const dados = await fetchPlanilha();
     const categoriasSet = new Set();
 
-    for (const item of dados) {
-      if (item.categoria) categoriasSet.add(item.categoria.trim());
+    for (const linha of dados) {
+      const categoria = linha['categoria'];
+      const musica = linha['música']; // <- agora com acento
+
+      if (categoria && musica && musica !== 'off') {
+        categoriasSet.add(categoria);
+      }
     }
 
     const categorias = Array.from(categoriasSet).sort();
@@ -17,11 +22,11 @@ exports.handler = async function () {
       statusCode: 200,
       body: JSON.stringify({ categorias }),
     };
-  } catch (error) {
-    console.error("Erro ao obter categorias:", error);
+  } catch (erro) {
+    console.error('Erro ao obter categorias:', erro);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Erro ao obter categorias" }),
+      body: JSON.stringify({ erro: 'Erro ao carregar categorias' }),
     };
   }
 };
