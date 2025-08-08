@@ -50,8 +50,11 @@ async function fetchPlanilha() {
     const primeiraLinha = parsed[0] || [];
     const repertorioOff = primeiraLinha.some(cel => (cel || "").toLowerCase().includes("off"));
 
+    // Ignora a primeira linha (cabeçalho)
+    const dadosLinhas = parsed.slice(1);
+
     // Filtra linhas válidas: [categoria, música]
-    const linhas = parsed
+    const linhas = dadosLinhas
       .map(l => [l[0]?.trim(), l[1]?.trim()])
       .filter(l => l[0] && l[1]);
 
