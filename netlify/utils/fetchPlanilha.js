@@ -1,46 +1,37 @@
-// utils/fetchPlanilha.js
+// === fetch-planilhas.js ===
+const fetch = require("node-fetch");
+const Papa = require("papaparse");
 
-let cache = {
-  data: null,
-  timestamp: 0,
-};
-const CACHE_DURATION_MS = 15 * 60 * 1000; // 15 minutos
+let cache = { data: null, timestamp: 0 };
+const CACHE_DURATION = 15 * 60 * 1000; // 15 minutos
 
 async function fetchPlanilha() {
-  const csvUrl = process.env.PLANILHA_CSV_URL;
-  if (!csvUrl) {
-    throw new Error('PLANILHA_CSV_URL não definida');
-  }
-
-  const agora = Date.now();
-  if (cache.data && agora - cache.timestamp < CACHE_DURATION_MS) {
+  if (cache.data && Date.now() - cache.timestamp < CACHE_DURATION) {
     return cache.data;
   }
 
-  const response = await fetch(csvUrl);
-  if (!response.ok) {
-    throw new Error('Falha ao buscar a planilha');
-  }
+  const url = "URL_DO_SEU_CSV"; // Substitua pela URL real
+  const response = await fetch(url);
+  const csv = await response.text();
+  const parsed = Papa.parse(csv, { skipEmptyLines: true }).data;
 
-  const textoCSV = await response.text();
-  const linhas = textoCSV
-    .trim()
-    .split('\n')
-    .map(l => l.split(',').map(c => c.trim()));
+  // Verifica se qualquer célula da primeira linha contém "off" (case-insensitive)
+  const primeiraLinha = parsed[0] || [];
+  const repertorioOff = primeiraLinha.some(cel => (cel || "").toLowerCase().includes("off"));
 
-  const [cabecalho, ...corpo] = linhas;
+  // Filtra somente linhas com categoria e música
+  const linhas = parsed
+    .map(l => [l[0]?.trim(), l[1]?.trim()])
+    .filter(l => l[0] && l[1]);
 
-  const dados = corpo.map(linha => {
-    const item = {};
-    cabecalho.forEach((col, i) => {
-      item[col.toLowerCase()] = linha[i] || '';
-    });
-    return item;
-  });
+  const dados = {
+    linhas,
+    repertorioOff
+  };
 
   cache = {
     data: dados,
-    timestamp: agora,
+    timestamp: Date.now()
   };
 
   return dados;
