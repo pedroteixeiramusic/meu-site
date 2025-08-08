@@ -1,32 +1,30 @@
-// functions/get-categorias.js
+// === get-categorias.js ===
+const fetchPlanilha = require("./fetch-planilhas.js");
 
-const fetchPlanilha = require('../utils/fetchPlanilha');
-
+// Esta função organiza e retorna as categorias únicas da planilha
 exports.handler = async function () {
   try {
-    const dados = await fetchPlanilha();
-    const categoriasSet = new Set();
+    const { linhas, repertorioOff } = await fetchPlanilha();
 
-    for (const linha of dados) {
-      const categoria = linha['categoria'];
-      const musica = linha['música']; // <- agora com acento
-
-      if (categoria && musica && musica !== 'off') {
-        categoriasSet.add(categoria);
-      }
+    if (repertorioOff) {
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ status: "off" })
+      };
     }
 
-    const categorias = Array.from(categoriasSet).sort();
+    const categorias = Array.from(new Set(
+      linhas.map(([categoria]) => categoria.trim())
+    ));
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ categorias }),
+      body: JSON.stringify(categorias)
     };
-  } catch (erro) {
-    console.error('Erro ao obter categorias:', erro);
+  } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ erro: 'Erro ao carregar categorias' }),
+      body: JSON.stringify({ error: "Erro ao carregar categorias." })
     };
   }
 };
