@@ -1,5 +1,5 @@
 // === get-categorias.js ===
-const fetchPlanilha = require('./fetch-planilhas.js');
+const fetchPlanilha = require('../utils/fetch-planilhas');
 
 // Esta função organiza e retorna as categorias únicas da planilha
 exports.handler = async function () {
