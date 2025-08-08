@@ -1,39 +1,49 @@
 // utils/fetchPlanilha.js
 
-const https = require("https");
+let cache = {
+  data: null,
+  timestamp: 0,
+};
+const CACHE_DURATION_MS = 15 * 60 * 1000; // 15 minutos
 
-// Variável de ambiente segura
-const CSV_URL = process.env.PLANILHA_CSV_URL;
-
-// Função auxiliar para baixar o CSV da planilha
-function fetchCSV() {
-  return new Promise((resolve, reject) => {
-    if (!CSV_URL) return reject(new Error("PLANILHA_CSV_URL não definida"));
-
-    https.get(CSV_URL, (res) => {
-      let data = "";
-      res.on("data", (chunk) => (data += chunk));
-      res.on("end", () => resolve(data));
-    }).on("error", reject);
-  });
-}
-
-// Função para converter CSV para objetos
-function parseCSV(csv) {
-  const linhas = csv.split("\n").map((l) => l.trim()).filter(Boolean);
-  const objetos = [];
-
-  for (let i = 1; i < linhas.length; i++) {
-    const [categoria, musica] = linhas[i].split(",").map((s) => s.trim());
-    if (categoria && musica) {
-      objetos.push({ categoria, musica });
-    }
+async function fetchPlanilha() {
+  const csvUrl = process.env.PLANILHA_CSV_URL;
+  if (!csvUrl) {
+    throw new Error('PLANILHA_CSV_URL não definida');
   }
 
-  return objetos;
+  const agora = Date.now();
+  if (cache.data && agora - cache.timestamp < CACHE_DURATION_MS) {
+    return cache.data;
+  }
+
+  const response = await fetch(csvUrl);
+  if (!response.ok) {
+    throw new Error('Falha ao buscar a planilha');
+  }
+
+  const textoCSV = await response.text();
+  const linhas = textoCSV
+    .trim()
+    .split('\n')
+    .map(l => l.split(',').map(c => c.trim()));
+
+  const [cabecalho, ...corpo] = linhas;
+
+  const dados = corpo.map(linha => {
+    const item = {};
+    cabecalho.forEach((col, i) => {
+      item[col.toLowerCase()] = linha[i] || '';
+    });
+    return item;
+  });
+
+  cache = {
+    data: dados,
+    timestamp: agora,
+  };
+
+  return dados;
 }
 
-module.exports = async function getPlanilhaOrganizada() {
-  const rawCSV = await fetchCSV();
-  return parseCSV(rawCSV);
-};
+module.exports = fetchPlanilha;
