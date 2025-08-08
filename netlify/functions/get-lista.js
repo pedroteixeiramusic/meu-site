@@ -1,38 +1,38 @@
-// functions/get-lista.js
+const fetchPlanilha = require("../utils/fetch-planilhas");
 
-const fetchPlanilha = require('../utils/fetchPlanilha');
-
-exports.handler = async function (event) {
-  const categoriaAlvo = event.queryStringParameters?.categoria;
-
-  if (!categoriaAlvo) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ erro: 'Categoria não especificada' }),
-    };
-  }
-
+exports.handler = async function(event, context) {
   try {
+    const query = event.queryStringParameters || {};
+    const categoria = query.categoria || "";
+
     const dados = await fetchPlanilha();
 
-    const lista = dados
-      .filter(linha =>
-        linha['categoria'] === categoriaAlvo &&
-        linha['música'] &&
-        linha['música'] !== 'off'
-      )
-      .map(linha => linha['música']) // agora acessando com colchetes e acento
-      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    if (!dados.disponivel) {
+      // Repertório off - retorna array vazio
+      return {
+        statusCode: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify([])
+      };
+    }
+
+    // Filtra músicas da categoria e ordena alfabeticamente
+    const musicas = dados.linhas
+      .filter(l => l[0].toLowerCase() === categoria.toLowerCase())
+      .map(l => l[1])
+      .sort((a, b) => a.localeCompare(b, "pt", { sensitivity: "base" }));
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ lista }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(musicas)
     };
-  } catch (erro) {
-    console.error('Erro ao obter lista:', erro);
+  } catch (err) {
+    // Fallback seguro em caso de erro
     return {
-      statusCode: 500,
-      body: JSON.stringify({ erro: 'Erro ao carregar lista' }),
+      statusCode: 200,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify([])
     };
   }
 };
