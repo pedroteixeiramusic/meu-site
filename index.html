@@ -1614,9 +1614,11 @@
         const data = await response.json();
         console.log('📋 Dados recebidos:', data);
         
-        if (data.categorias && Array.isArray(data.categorias)) {
-          categorias = data.categorias;
+        if (data.data && Array.isArray(data.data)) {
+          categorias = data.data;
+          pedidosMusicaAtivos = data.disponivel;
           console.log('✅ Categorias carregadas:', categorias);
+          console.log('✅ Status disponível:', pedidosMusicaAtivos);
           
           // Habilitar botão "Pedir música"
           const btnPedirMusica = document.getElementById('btnPedirMusica');
@@ -1708,11 +1710,11 @@ async function mostrarMusicas(categoria) {
     
     const data = await response.json();
     console.log('🎶 Dados completos recebidos:', data);
-    console.log('🎶 Lista de músicas:', data.lista);
+    console.log('🎶 Lista de músicas:', data);
     
-    if (data.lista && Array.isArray(data.lista) && data.lista.length > 0) {
+    if (Array.isArray(data) && data.length > 0) {
       // Exibir músicas
-      exibirMusicas(data.lista);
+      exibirMusicas(data);
       console.log('✅ Músicas exibidas com sucesso');
     } else {
       // Mostrar mensagem de categoria vazia
@@ -2087,6 +2089,7 @@ async function mostrarMusicas(categoria) {
 
 </body>
 </html>
+
 
 
 
