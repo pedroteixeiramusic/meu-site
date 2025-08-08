@@ -5,10 +5,13 @@ exports.handler = async function(event, context) {
     const query = event.queryStringParameters || {};
     const categoria = query.categoria || "";
 
+    console.log("Categoria recebida:", categoria);
+
     const dados = await fetchPlanilha();
 
+    console.log("Linhas carregadas:", dados.linhas);
+
     if (!dados.disponivel) {
-      // Repertório off - retorna array vazio
       return {
         statusCode: 200,
         headers: { "Content-Type": "application/json" },
@@ -16,9 +19,8 @@ exports.handler = async function(event, context) {
       };
     }
 
-    // Filtra músicas da categoria e ordena alfabeticamente
     const musicas = dados.linhas
-      .filter(l => l[0].toLowerCase() === categoria.toLowerCase())
+      .filter(l => l[0]?.trim().toLowerCase() === categoria.trim().toLowerCase())
       .map(l => l[1])
       .sort((a, b) => a.localeCompare(b, "pt", { sensitivity: "base" }));
 
@@ -28,7 +30,7 @@ exports.handler = async function(event, context) {
       body: JSON.stringify(musicas)
     };
   } catch (err) {
-    // Fallback seguro em caso de erro
+    console.error("Erro get-lista:", err);
     return {
       statusCode: 200,
       headers: { "Content-Type": "application/json" },
