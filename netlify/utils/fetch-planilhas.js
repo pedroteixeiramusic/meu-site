@@ -5,36 +5,80 @@ const Papa = require("papaparse");
 let cache = { data: null, timestamp: 0 };
 const CACHE_DURATION = 15 * 60 * 1000; // 15 minutos
 
+// Função auxiliar para esperar alguns ms (usada no retry)
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Função auxiliar com retry
+async function fetchComRetry(url, tentativas = 3, esperaMs = 500) {
+  let ultimoErro;
+  for (let i = 0; i < tentativas; i++) {
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      return await resp.text();
+    } catch (err) {
+      ultimoErro = err;
+      console.warn(`Tentativa ${i + 1} falhou: ${err.message}`);
+      if (i < tentativas - 1) await delay(esperaMs);
+    }
+  }
+  throw ultimoErro;
+}
+
 async function fetchPlanilha() {
+  // Retorna do cache se ainda válido
   if (cache.data && Date.now() - cache.timestamp < CACHE_DURATION) {
     return cache.data;
   }
 
-  const url = "URL_DO_SEU_CSV"; // Substitua pela URL real
-  const response = await fetch(url);
-  const csv = await response.text();
-  const parsed = Papa.parse(csv, { skipEmptyLines: true }).data;
+  const url = process.env.PLANILHA_CSV_URL;
+  if (!url) {
+    console.error("❌ Variável de ambiente PLANILHA_CSV_URL não configurada.");
+    return { linhas: [], disponivel: false, erro: true };
+  }
 
-  // Verifica se qualquer célula da primeira linha contém "off" (case-insensitive)
-  const primeiraLinha = parsed[0] || [];
-  const repertorioOff = primeiraLinha.some(cel => (cel || "").toLowerCase().includes("off"));
+  try {
+    // Busca o CSV com retry
+    const csv = await fetchComRetry(url);
 
-  // Filtra somente linhas com categoria e música
-  const linhas = parsed
-    .map(l => [l[0]?.trim(), l[1]?.trim()])
-    .filter(l => l[0] && l[1]);
+    // Faz o parse
+    const parsed = Papa.parse(csv, { skipEmptyLines: true }).data;
 
-  const dados = {
-    linhas,
-    repertorioOff
-  };
+    // Verifica se a primeira linha contém "off" (case-insensitive)
+    const primeiraLinha = parsed[0] || [];
+    const repertorioOff = primeiraLinha.some(cel => (cel || "").toLowerCase().includes("off"));
 
-  cache = {
-    data: dados,
-    timestamp: Date.now()
-  };
+    // Filtra linhas válidas: [categoria, música]
+    const linhas = parsed
+      .map(l => [l[0]?.trim(), l[1]?.trim()])
+      .filter(l => l[0] && l[1]);
 
-  return dados;
+    // Monta dados finais
+    const dados = {
+      linhas,
+      disponivel: !repertorioOff,
+      erro: false
+    };
+
+    // Atualiza cache
+    cache = { data: dados, timestamp: Date.now() };
+
+    return dados;
+
+  } catch (err) {
+    console.error("❌ Erro ao buscar planilha:", err.message);
+
+    // Se já existe cache, retorna ele como fallback
+    if (cache.data) {
+      console.warn("⚠️ Usando dados do cache como fallback.");
+      return cache.data;
+    }
+
+    // Fallback seguro se não houver cache
+    return { linhas: [], disponivel: false, erro: true };
+  }
 }
 
 module.exports = fetchPlanilha;
