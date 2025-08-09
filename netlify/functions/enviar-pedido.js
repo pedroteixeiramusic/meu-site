@@ -126,13 +126,16 @@ exports.handler = async (event, context) => {
   }
 };
 
-// Função para gerar número do pedido (movida do frontend)
+let contador = 0;
+let dataAtual = new Date().toISOString().slice(0, 10);
+
 async function gerarNumeroPedido() {
-  // Usar timestamp + random para evitar conflitos
-  // Formato: últimos 6 dígitos do timestamp + 2 dígitos aleatórios
-  const timestamp = Date.now().toString().slice(-6);
-  const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
-  return timestamp + random;
+  const hoje = new Date().toISOString().slice(0, 10);
+  if (hoje !== dataAtual) {
+    contador = 0;
+    dataAtual = hoje;
+  }
+  return contador++;  // retorna o número atual e incrementa para o próximo
 }
 
 // Função para enviar ao Telegram COM RETRY
