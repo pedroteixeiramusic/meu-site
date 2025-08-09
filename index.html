@@ -1730,18 +1730,20 @@ async function mostrarMusicas(categoria) {
       });
     }
 
-    // FUNÇÃO CORRIGIDA: Filtrar músicas
-    function filtrarMusicas() {
-      const termo = document.getElementById('buscaMusica').value.toLowerCase();
-      const termoSemAcentos = removerAcentos(termo);
-      
-      console.log('🔍 Filtrando músicas com termo:', termo);
-      
-      // Recarregar músicas da categoria atual se necessário
-      if (categoriaAtual) {
-        mostrarMusicas(categoriaAtual);
-      }
-    }
+   function filtrarMusicas() {
+  const termo = document.getElementById('buscaMusica').value.toLowerCase();
+  const termoSemAcentos = removerAcentos(termo);
+
+  console.log('🔍 Filtrando músicas com termo:', termo);
+
+  // Seleciona os <li> das músicas já mostradas
+  const musicas = document.querySelectorAll('#musicas li');
+
+  musicas.forEach(musica => {
+    const texto = removerAcentos(musica.textContent.toLowerCase());
+    musica.style.display = texto.includes(termoSemAcentos) ? '' : 'none';
+  });
+}
 
     // Função para selecionar música
     function selecionarMusica(musica) {
@@ -2030,6 +2032,7 @@ async function mostrarMusicas(categoria) {
 </script>
 </body>
 </html>
+
 
 
 
