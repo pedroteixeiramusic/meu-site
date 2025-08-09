@@ -2,6 +2,7 @@
 // Nova implementação com toda a lógica movida do frontend
 
 exports.handler = async (event, context) => {
+  console.log('Função iniciada - handler principal');
   // Handler para OPTIONS (CORS)
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -192,6 +193,7 @@ async function gerarNumeroPedido(csv) {
 // Exemplo de função que processa o pedido:
 async function processarPedido() {
   const csv = await buscarCsvDaPlanilha();
+  console.log('CSV total:', csv);
   const numeroPedido = await gerarNumeroPedido(csv);
   console.log('Número do pedido:', numeroPedido);
   // resto do processamento
