@@ -1497,50 +1497,14 @@
   </div>
 
   <script>
-    // Chaves PIX para cada valor de gorjeta
-    const CHAVES_PIX = {
-      "3": "00020126690014BR.GOV.BCB.PIX0136f4573753-c26d-4609-9610-89c810b03e310207gorjeta52040000530398654043.005802BR5925Pedro Henrique Martins Te6009SAO PAULO61080540900062230519bxWWKAP3L3MfEsdk5xs6304BCE3",
-      "7": "00020126690014BR.GOV.BCB.PIX0136f4573753-c26d-4609-9610-89c810b03e310207gorjeta52040000530398654047.005802BR5925Pedro Henrique Martins Te6009SAO PAULO61080540900062230519K1lfTZdOaqQZnr4k5xs63043A6A",
-      "15": "00020126690014BR.GOV.BCB.PIX0136f4573753-c26d-4609-9610-89c810b03e310207gorjeta520400005303986540515.005802BR5925Pedro Henrique Martins Te6009SAO PAULO61080540900062230519nMTOKGa4plV0eHAk5xs63041D52",
-      "25": "00020126690014BR.GOV.BCB.PIX0136f4573753-c26d-4609-9610-89c810b03e310207gorjeta520400005303986540525.005802BR5925Pedro Henrique Martins Te6009SAO PAULO610805409000622305192LyQj0fxzFevHHzk5xs6304E521",
-      "50": "00020126690014BR.GOV.BCB.PIX0136f4573753-c26d-4609-9610-89c810b03e310207gorjeta520400005303986540550.005802BR5925Pedro Henrique Martins Te6009SAO PAULO61080540900062230519LCvJTaNZqjNTCNgk5xs63041B38",
-      "100": "00020126690014BR.GOV.BCB.PIX0136f4573753-c26d-4609-9610-89c810b03e310207gorjeta5204000053039865406100.005802BR5925Pedro Henrique Martins Te6009SAO PAULO61080540900062230519B6t0QgiXEw6htoKk5xs63048E53",
-      "outro": "00020126690014BR.GOV.BCB.PIX0136f4573753-c26d-4609-9610-89c810b03e310207gorjeta5204000053039865802BR5925Pedro Henrique Martins Te6009SAO PAULO62140510M5x3KrERij6304C4FC"
-    };
+    // Chaves PIX movidas para o backend por segurança
 
     // Variáveis globais
     let categorias = [];
     let categoriaAtual = '';
     let pedidosMusicaAtivos = true;
 
-    // ALTERAÇÃO 1: Contador diário de pedidos (não mais por cliente)
-    function obterContadorDiario() {
-      const hoje = new Date().toDateString();
-      const dadosContador = localStorage.getItem('contadorDiario');
-      
-      if (dadosContador) {
-        const dados = JSON.parse(dadosContador);
-        if (dados.data === hoje) {
-          return dados.contador;
-        }
-      }
-      
-      return 0;
-    }
-
-    function incrementarContadorDiario() {
-      const hoje = new Date().toDateString();
-      let contador = obterContadorDiario();
-      contador++;
-      
-      const dadosContador = {
-        data: hoje,
-        contador: contador
-      };
-      
-      localStorage.setItem('contadorDiario', JSON.stringify(dadosContador));
-      return contador;
-    }
+    // Funções de contador movidas para o backend por segurança
 
     // Função para formatar telefone e limitar a 11 dígitos
     function formatarTelefone(input) {
@@ -1824,96 +1788,73 @@ async function mostrarMusicas(categoria) {
       }
     }
 
-    // Variável para controle de debounce
+    // Variável para controle de debounce (PRESERVADA)
     let enviandoPedido = false;
 
     async function enviarPedido(event) {
       event.preventDefault();
       
+      // DEBOUNCE: Impede múltiplos cliques (PRESERVADO)
       if (enviandoPedido) {
         return;
       }
       
       enviandoPedido = true;
       
+      // Controle do botão (PRESERVADO)
       const botaoEnviar = event.target.querySelector('button[type="submit"]');
       const textoOriginalBotao = botaoEnviar.textContent;
       botaoEnviar.disabled = true;
       botaoEnviar.textContent = 'Enviando...';
       
-      const nome = document.getElementById('nome').value;
-      const telefone = document.getElementById('telefone').value;
-      const musica = document.getElementById('musica').value;
-      const gorjeta = document.getElementById('gorjeta').value;
-      const outroValor = document.getElementById('outroValor').value;
-      const mensagem = document.getElementById('mensagem').value;
-      const consentimento = document.getElementById('consentimento').checked;
+      // Coletar dados do formulário (SIMPLIFICADO)
+      const dadosPedido = {
+        nome: document.getElementById('nome').value,
+        telefone: document.getElementById('telefone').value,
+        musica: document.getElementById('musica').value,
+        gorjeta: document.getElementById('gorjeta').value,
+        outroValor: document.getElementById('outroValor').value,
+        mensagem: document.getElementById('mensagem').value,
+        consentimento: document.getElementById('consentimento').checked
+      };
       
-      // Salvar dados
-      if (nome) {
-        localStorage.setItem('nomeUsuario', nome);
+      // Salvar dados localmente (PRESERVADO)
+      if (dadosPedido.nome) {
+        localStorage.setItem('nomeUsuario', dadosPedido.nome);
       }
-      if (telefone) {
-        localStorage.setItem('telefoneUsuario', telefone);
-      }
-      
-      let valorGorjeta = '';
-      if (gorjeta === 'outro' && outroValor) {
-        valorGorjeta = outroValor;
-      } else if (gorjeta) {
-        valorGorjeta = gorjeta;
-      }
-      
-      const numeroPedido = incrementarContadorDiario();
-      
-      let textoTelegram = `🎶 *Novo Pedido de Música Nº${numeroPedido}* 🎶\n👤 ${nome}`;
-      textoTelegram += `\n🎵 ${musica}`;
-      
-      if (valorGorjeta) {
-        textoTelegram += `\n💰 R$${valorGorjeta}`;
-      }
-      if (mensagem) {
-        textoTelegram += `\n💌 ${mensagem}`;
-      }
-      if (telefone) {
-        const telefoneNumeros = telefone.replace(/\D/g, '');
-        textoTelegram += `\n📞 ${telefoneNumeros}`;
-      }
-      
-      if (consentimento) {
-        textoTelegram += `\n✅ Quero ficar por dentro de novas experiências musicais como esta. Aceito receber mensagens suas.`;
+      if (dadosPedido.telefone) {
+        localStorage.setItem('telefoneUsuario', dadosPedido.telefone);
       }
       
       try {
+        // Enviar para o backend (SIMPLIFICADO)
         const response = await fetch("/.netlify/functions/enviar-pedido", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
           },
-          body: JSON.stringify({ textoTelegram: textoTelegram })
+          body: JSON.stringify(dadosPedido)
         });
 
         const data = await response.json();
 
-        if (!response.ok) {
+        if (!response.ok || !data.success) {
           throw new Error(data.error || 'Erro desconhecido ao enviar pedido.');
         }
 
         console.log('✅ Pedido enviado com sucesso!');
+        
+        // Processar resposta do backend
         document.getElementById("formularioPedido").style.display = "none";
         document.getElementById("confirmacao").style.display = "block";
 
         const tituloConfirmacao = document.querySelector("#confirmacao h2");
 
-        if (gorjeta === "outro") {
+        // Lógica de exibição baseada na resposta do backend
+        if (data.temGorjeta) {
           tituloConfirmacao.textContent = "Tá quase lá...";
           document.getElementById("pixContainer").style.display = "block";
-          document.getElementById("chavePix").value = CHAVES_PIX["outro"];
-          document.getElementById("btnVoltarInicio").style.display = "none";
-        } else if (valorGorjeta > 0) {
-          tituloConfirmacao.textContent = "Tá quase lá...";
-          document.getElementById("pixContainer").style.display = "block";
-          document.getElementById("chavePix").value = CHAVES_PIX[valorGorjeta];
+          document.getElementById("chavePix").value = data.chavePix;
           document.getElementById("btnVoltarInicio").style.display = "none";
         } else {
           tituloConfirmacao.textContent = "Pedido enviado com sucesso!🎤🎶";
@@ -1921,13 +1862,14 @@ async function mostrarMusicas(categoria) {
           document.getElementById("btnVoltarInicio").style.display = "block";
         }
 
-        // Adicionar navegação com history
+        // Adicionar navegação com history (PRESERVADO)
         history.pushState({ page: 'confirmacao' }, 'Confirmação', '#confirmacao');
 
       } catch (error) {
         console.error('❌ Erro ao enviar pedido:', error);
-        alert("❌ Não foi possível enviar o pedido. Verifique sua conexão e tente novamente.");
+        alert(`❌ Erro ao enviar pedido: ${error.message}`);
       } finally {
+        // Restaurar estado do botão (PRESERVADO)
         botaoEnviar.disabled = false;
         botaoEnviar.textContent = textoOriginalBotao;
         enviandoPedido = false;
@@ -2086,9 +2028,9 @@ async function mostrarMusicas(categoria) {
       }
     });
 </script>
-
 </body>
 </html>
+
 
 
 
