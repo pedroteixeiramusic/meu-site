@@ -29,6 +29,7 @@ exports.handler = async (event, context) => {
   // Configurações do Telegram
   const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
   const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+  const PLANILHA_CSV_URL = process.env.PLANILHA_CSV_URL;
 
   try {
     // Parse dos dados recebidos do frontend
@@ -126,20 +127,30 @@ exports.handler = async (event, context) => {
   }
 };
 
+async function buscarCsvDaPlanilha() {
+  const response = await fetch(PLANILHA_CSV_URL);
+  if (!response.ok) {
+    throw new Error('Falha ao buscar a planilha CSV');
+  }
+  const csv = await response.text();
+  return csv;
+}
+
 let cache = {
-  dataCache: null,    // data que está na célula C1
+  dataCache: null,
   contador: 0,
-  ultimoTimestamp: 0  // timestamp em ms da última leitura do CSV
+  ultimoTimestamp: 0
 };
 
 const CACHE_DURACAO_MS = 6 * 60 * 60 * 1000; // 6 horas
 
 function lerCelulaC1(csv) {
+  if (!csv) return '';
   const linhas = csv.split('\n');
   if (linhas.length < 1) return '';
   const colunas = linhas[0].split(',');
   if (colunas.length < 3) return '';
-  return colunas[2].trim(); // coluna C é index 2
+  return colunas[2].trim();
 }
 
 function dataValida(dataStr) {
@@ -173,6 +184,14 @@ async function gerarNumeroPedido(csv) {
 
   cache.ultimoTimestamp = agora;
   return cache.contador;
+}
+
+// Exemplo de função que processa o pedido:
+async function processarPedido() {
+  const csv = await buscarCsvDaPlanilha();
+  const numeroPedido = await gerarNumeroPedido(csv);
+  console.log('Número do pedido:', numeroPedido);
+  // resto do processamento
 }
 
 // Função para enviar ao Telegram COM RETRY
