@@ -2,6 +2,19 @@
 // Nova implementação com toda a lógica movida do frontend
 
 exports.handler = async (event, context) => {
+  // Handler para OPTIONS (CORS)
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+      },
+      body: ''
+    };
+  }
+
   // Chaves PIX (movidas do frontend)
   const CHAVES_PIX = {
     "3": "00020126690014BR.GOV.BCB.PIX0136f4573753-c26d-4609-9610-89c810b03e310207gorjeta52040000530398654043.005802BR5925Pedro Henrique Martins Te6009SAO PAULO61080540900062230519bxWWKAP3L3MfEsdk5xs6304BCE3",
@@ -180,18 +193,5 @@ async function enviarParaTelegramComRetry(texto, token, chatId, maxTentativas = 
 // Função auxiliar para aguardar
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// Handler para OPTIONS (CORS)
-if (event.httpMethod === 'OPTIONS') {
-  return {
-    statusCode: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS'
-    },
-    body: ''
-  };
 }
 
