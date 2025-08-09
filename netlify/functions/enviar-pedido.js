@@ -126,16 +126,53 @@ exports.handler = async (event, context) => {
   }
 };
 
-let contador = 0;
-let dataAtual = new Date().toISOString().slice(0, 10);
+let cache = {
+  dataCache: null,    // data que está na célula C1
+  contador: 0,
+  ultimoTimestamp: 0  // timestamp em ms da última leitura do CSV
+};
 
-async function gerarNumeroPedido() {
-  const hoje = new Date().toISOString().slice(0, 10);
-  if (hoje !== dataAtual) {
-    contador = 0;
-    dataAtual = hoje;
+const CACHE_DURACAO_MS = 6 * 60 * 60 * 1000; // 6 horas
+
+function lerCelulaC1(csv) {
+  const linhas = csv.split('\n');
+  if (linhas.length < 1) return '';
+  const colunas = linhas[0].split(',');
+  if (colunas.length < 3) return '';
+  return colunas[2].trim(); // coluna C é index 2
+}
+
+function dataValida(dataStr) {
+  const regex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!regex.test(dataStr)) return false;
+  const d = new Date(dataStr);
+  return d instanceof Date && !isNaN(d);
+}
+
+async function gerarNumeroPedido(csv) {
+  const agora = Date.now();
+
+  if (cache.dataCache && (agora - cache.ultimoTimestamp) < CACHE_DURACAO_MS) {
+    cache.contador++;
+    return cache.contador - 1;
   }
-  return contador++;  // retorna o número atual e incrementa para o próximo
+
+  const valorC1 = lerCelulaC1(csv);
+
+  if (dataValida(valorC1)) {
+    if (valorC1 === cache.dataCache) {
+      cache.contador++;
+    } else {
+      cache.contador = 0;
+      cache.dataCache = valorC1;
+    }
+  } else {
+    cache.contador = 0;
+    cache.dataCache = null;
+  }
+
+  cache.ultimoTimestamp = agora;
+  return cache.contador;
 }
 
 // Função para enviar ao Telegram COM RETRY
