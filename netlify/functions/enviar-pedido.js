@@ -128,11 +128,14 @@ exports.handler = async (event, context) => {
 };
 
 async function buscarCsvDaPlanilha() {
+  console.log('Iniciando fetch do CSV da planilha...');
   const response = await fetch(PLANILHA_CSV_URL);
   if (!response.ok) {
+    console.error('Erro ao buscar CSV:', response.status);
     throw new Error('Falha ao buscar a planilha CSV');
   }
   const csv = await response.text();
+  console.log('CSV recebido (primeiros 200 caracteres):', csv.slice(0, 200));
   return csv;
 }
 
