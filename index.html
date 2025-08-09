@@ -1867,7 +1867,7 @@ async function mostrarMusicas(categoria) {
 
       } catch (error) {
         console.error('❌ Erro ao enviar pedido:', error);
-        alert(`❌ Erro ao enviar pedido: ${error.message}`);
+        alert(`❌ Erro ao enviar pedido. Verifique sua conexão com a internet: ${error.message}`);
       } finally {
         // Restaurar estado do botão (PRESERVADO)
         botaoEnviar.disabled = false;
@@ -2030,6 +2030,7 @@ async function mostrarMusicas(categoria) {
 </script>
 </body>
 </html>
+
 
 
 
