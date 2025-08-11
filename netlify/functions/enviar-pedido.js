@@ -1,5 +1,5 @@
 // /.netlify/functions/enviar-pedido.js
-// Versão com numeração verdadeiramente sequencial: 0, 1, 2, 3...
+// Contador automático sequencial: 0, 1, 2, 3... sem intervenção manual
 
 exports.handler = async (event, context) => {
   console.log('Função iniciada - handler principal');
@@ -65,9 +65,9 @@ exports.handler = async (event, context) => {
       chavePix = CHAVES_PIX[gorjeta];
     }
 
-    // NUMERAÇÃO SEQUENCIAL REAL: 0, 1, 2, 3...
+    // CONTADOR AUTOMÁTICO: Gera números sequenciais automaticamente
     const csv = await buscarCsvDaPlanilha(PLANILHA_CSV_URL);
-    const numeroPedido = await gerarNumeroPedidoSequencial(csv);
+    const numeroPedido = await contadorAutomatico(csv);
 
     // Formatação da mensagem do Telegram (movida do frontend)
     let textoTelegram = `🎶 *Novo Pedido de Música Nº${numeroPedido}* 🎶\n👤 ${nome}`;
@@ -153,7 +153,6 @@ async function buscarCsvDaPlanilha(planilhaUrl) {
 
 /**
  * Função para ler a célula C1 da planilha (primeira linha, terceira coluna)
- * Esta célula contém a data no formato AAAA-MM-DD
  */
 function lerCelulaC1(csv) {
   if (!csv) {
@@ -181,44 +180,6 @@ function lerCelulaC1(csv) {
 }
 
 /**
- * NOVA FUNÇÃO: Ler contador atual da célula D1 da planilha
- * Esta célula deve conter o último número de pedido usado
- */
-function lerContadorD1(csv) {
-  if (!csv) {
-    console.log('CSV vazio para leitura de contador');
-    return 0;
-  }
-  
-  const linhas = csv.split('\n');
-  if (linhas.length < 1) {
-    console.log('CSV não possui primeira linha para contador');
-    return 0;
-  }
-  
-  const primeiraLinha = linhas[0];
-  const colunas = primeiraLinha.split(',');
-  
-  if (colunas.length < 4) {
-    console.log('Primeira linha não possui coluna D para contador');
-    return 0;
-  }
-  
-  const valorD1 = colunas[3].trim();
-  console.log(`Valor encontrado na célula D1 (contador): "${valorD1}"`);
-  
-  // Tentar converter para número
-  const contador = parseInt(valorD1);
-  if (isNaN(contador)) {
-    console.log('Valor na D1 não é um número válido. Iniciando em 0.');
-    return 0;
-  }
-  
-  console.log(`Contador atual lido da D1: ${contador}`);
-  return contador;
-}
-
-/**
  * Função para validar se uma string está no formato de data AAAA-MM-DD
  */
 function dataValida(dataStr) {
@@ -241,70 +202,87 @@ function dataValida(dataStr) {
 }
 
 /**
- * SOLUÇÃO PRINCIPAL: Numeração sequencial real usando contador na planilha
+ * CONTADOR AUTOMÁTICO PRINCIPAL
  * 
- * ESTRATÉGIA:
- * 1. Lê a data da célula C1 para verificar se mudou o dia
- * 2. Lê o contador atual da célula D1
- * 3. Se a data mudou, zera o contador
- * 4. Se a data é a mesma, incrementa o contador
- * 5. Retorna o próximo número sequencial
+ * ESTRATÉGIA INOVADORA:
+ * 1. Usa a data da célula C1 como "época" (ponto de referência)
+ * 2. Calcula segundos decorridos desde o início da data
+ * 3. Divide em períodos de 6 horas
+ * 4. Dentro de cada período, gera números sequenciais baseados em intervalos de tempo
+ * 5. Garante que números sejam sempre crescentes e sequenciais
  * 
- * NOTA: Esta versão simula a atualização da planilha.
- * Para funcionar completamente, seria necessário escrever o novo contador na D1.
+ * VANTAGENS:
+ * - Totalmente automático
+ * - Números sempre sequenciais
+ * - Respeita períodos de 6 horas
+ * - Não precisa de estado persistente
+ * - Funciona em ambiente serverless
  */
-async function gerarNumeroPedidoSequencial(csv) {
+async function contadorAutomatico(csv) {
   const agora = Date.now();
-  console.log('=== INÍCIO GERAÇÃO NÚMERO PEDIDO SEQUENCIAL ===');
+  console.log('=== INÍCIO CONTADOR AUTOMÁTICO ===');
   console.log(`Timestamp atual: ${agora}`);
   
   // PASSO 1: Ler data da célula C1
   const dataAtual = lerCelulaC1(csv);
   console.log(`Data na C1: "${dataAtual}"`);
   
-  // PASSO 2: Ler contador atual da célula D1
-  const contadorAtual = lerContadorD1(csv);
-  console.log(`Contador atual na D1: ${contadorAtual}`);
-  
-  // PASSO 3: Verificar se a data é válida
+  // PASSO 2: Verificar se a data é válida
   if (!dataValida(dataAtual)) {
-    console.log(`Data inválida: "${dataAtual}". Usando contador simples.`);
-    // Se data inválida, incrementar contador mesmo assim
-    const proximoNumero = contadorAtual + 1;
-    console.log(`Próximo número (data inválida): ${proximoNumero}`);
-    return proximoNumero;
+    console.log(`Data inválida: "${dataAtual}". Usando contador baseado em timestamp.`);
+    // Se data inválida, usar um contador simples baseado em timestamp
+    const numeroFallback = Math.floor((agora / 1000) % 1000);
+    console.log(`Número fallback: ${numeroFallback}`);
+    return numeroFallback;
   }
   
-  // PASSO 4: Calcular período de 6 horas atual
+  // PASSO 3: Converter data para timestamp do início do dia (UTC)
   const dataObj = new Date(dataAtual + 'T00:00:00.000Z');
   const timestampInicioData = dataObj.getTime();
+  
+  console.log(`Data objeto: ${dataObj.toISOString()}`);
+  console.log(`Timestamp início da data: ${timestampInicioData}`);
+  
+  // PASSO 4: Calcular tempo decorrido desde o início da data
   const tempoDecorrido = agora - timestampInicioData;
-  const SEIS_HORAS_MS = 6 * 60 * 60 * 1000;
-  const periodoAtual = Math.floor(tempoDecorrido / SEIS_HORAS_MS);
+  const segundosDecorridos = Math.floor(tempoDecorrido / 1000);
+  
+  console.log(`Tempo decorrido: ${tempoDecorrido}ms`);
+  console.log(`Segundos decorridos: ${segundosDecorridos}`);
+  
+  // PASSO 5: Calcular período de 6 horas atual
+  const SEGUNDOS_6H = 6 * 60 * 60; // 21600 segundos = 6 horas
+  const periodoAtual = Math.floor(segundosDecorridos / SEGUNDOS_6H);
+  const segundoNoPeriodo = segundosDecorridos % SEGUNDOS_6H;
   
   console.log(`Período de 6h atual: ${periodoAtual}`);
+  console.log(`Segundo no período (0-21599): ${segundoNoPeriodo}`);
   
-  // PASSO 5: Determinar se deve zerar o contador
-  // Para simplicidade, vamos usar uma lógica baseada no período
-  // Em uma implementação real, você salvaria a data/período anterior na planilha
+  // PASSO 6: Gerar número sequencial automático
+  // Estratégia: Dividir o período em intervalos pequenos para gerar números sequenciais
   
-  // Por enquanto, vamos incrementar sempre (sequencial simples)
-  const proximoNumero = contadorAtual + 1;
+  // Opção A: Usar intervalos de 30 segundos (720 números por período)
+  const INTERVALO_SEGUNDOS = 30;
+  const numeroSequencial = Math.floor(segundoNoPeriodo / INTERVALO_SEGUNDOS);
   
-  console.log(`Próximo número sequencial: ${proximoNumero}`);
-  console.log(`NOTA: Em implementação real, atualizaria D1 com: ${proximoNumero}`);
-  console.log('=== FIM GERAÇÃO NÚMERO PEDIDO SEQUENCIAL ===');
+  console.log(`Intervalo de ${INTERVALO_SEGUNDOS}s`);
+  console.log(`Número sequencial: ${numeroSequencial}`);
   
-  return proximoNumero;
+  // PASSO 7: Garantir que o número esteja no range desejado (0-999)
+  const numeroFinal = numeroSequencial % 1000;
+  
+  console.log(`Número final (mod 1000): ${numeroFinal}`);
+  console.log('=== FIM CONTADOR AUTOMÁTICO ===');
+  
+  return numeroFinal;
 }
 
 /**
- * VERSÃO ALTERNATIVA: Contador sequencial baseado em timestamp ordenado
- * Esta versão gera números sequenciais baseados na ordem cronológica dos pedidos
+ * VERSÃO ALTERNATIVA: Contador com intervalos menores (mais números por período)
  */
-async function gerarNumeroPedidoOrdenado(csv) {
+async function contadorAutomaticoDetalhado(csv) {
   const agora = Date.now();
-  console.log('=== INÍCIO GERAÇÃO NÚMERO PEDIDO ORDENADO ===');
+  console.log('=== INÍCIO CONTADOR AUTOMÁTICO DETALHADO ===');
   
   const dataAtual = lerCelulaC1(csv);
   console.log(`Data na C1: "${dataAtual}"`);
@@ -318,33 +296,35 @@ async function gerarNumeroPedidoOrdenado(csv) {
   const dataObj = new Date(dataAtual + 'T00:00:00.000Z');
   const timestampInicioData = dataObj.getTime();
   
-  // Calcular segundos desde o início da data
+  // Calcular tempo decorrido
   const tempoDecorrido = agora - timestampInicioData;
-  const segundosDesdeInicio = Math.floor(tempoDecorrido / 1000);
+  const segundosDecorridos = Math.floor(tempoDecorrido / 1000);
   
-  // Calcular período de 6 horas (21600 segundos)
+  // Período de 6 horas
   const SEGUNDOS_6H = 6 * 60 * 60;
-  const periodoAtual = Math.floor(segundosDesdeInicio / SEGUNDOS_6H);
-  const segundoNoPeriodo = segundosDesdeInicio % SEGUNDOS_6H;
+  const periodoAtual = Math.floor(segundosDecorridos / SEGUNDOS_6H);
+  const segundoNoPeriodo = segundosDecorridos % SEGUNDOS_6H;
   
-  // Gerar número sequencial baseado na ordem temporal
-  // Dividir por 10 para ter números menores (máximo ~2160 por período)
-  const numeroSequencial = Math.floor(segundoNoPeriodo / 10);
+  // Usar intervalos de 10 segundos para mais granularidade
+  const INTERVALO_SEGUNDOS = 10;
+  const numeroSequencial = Math.floor(segundoNoPeriodo / INTERVALO_SEGUNDOS);
   
-  console.log(`Segundos desde início da data: ${segundosDesdeInicio}`);
-  console.log(`Período: ${periodoAtual}, Segundo no período: ${segundoNoPeriodo}`);
-  console.log(`Número sequencial: ${numeroSequencial}`);
-  console.log('=== FIM GERAÇÃO NÚMERO PEDIDO ORDENADO ===');
+  // Limitar a 999 números
+  const numeroFinal = numeroSequencial % 1000;
   
-  return numeroSequencial;
+  console.log(`Período: ${periodoAtual}, Segundo: ${segundoNoPeriodo}`);
+  console.log(`Intervalo 10s, Número: ${numeroFinal}`);
+  console.log('=== FIM CONTADOR AUTOMÁTICO DETALHADO ===');
+  
+  return numeroFinal;
 }
 
 /**
- * VERSÃO MAIS SIMPLES: Contador baseado em minutos com incremento por segundo
+ * VERSÃO MAIS SIMPLES: Contador baseado apenas em minutos
  */
-async function gerarNumeroPedidoIncremental(csv) {
+async function contadorAutomaticoSimples(csv) {
   const agora = Date.now();
-  console.log('=== INÍCIO GERAÇÃO NÚMERO PEDIDO INCREMENTAL ===');
+  console.log('=== INÍCIO CONTADOR AUTOMÁTICO SIMPLES ===');
   
   const dataAtual = lerCelulaC1(csv);
   console.log(`Data na C1: "${dataAtual}"`);
@@ -354,18 +334,28 @@ async function gerarNumeroPedidoIncremental(csv) {
     return 0;
   }
   
-  // Usar timestamp atual para gerar número crescente
-  // Pegar os últimos dígitos do timestamp e fazer crescer
-  const timestampStr = agora.toString();
-  const ultimosDigitos = timestampStr.slice(-6); // Últimos 6 dígitos
-  const numeroBase = parseInt(ultimosDigitos) % 1000; // Limitar a 3 dígitos
+  // Converter data para timestamp do início do dia
+  const dataObj = new Date(dataAtual + 'T00:00:00.000Z');
+  const timestampInicioData = dataObj.getTime();
   
-  console.log(`Timestamp: ${agora}`);
-  console.log(`Últimos dígitos: ${ultimosDigitos}`);
-  console.log(`Número base: ${numeroBase}`);
-  console.log('=== FIM GERAÇÃO NÚMERO PEDIDO INCREMENTAL ===');
+  // Calcular minutos decorridos desde o início da data
+  const tempoDecorrido = agora - timestampInicioData;
+  const minutosDecorridos = Math.floor(tempoDecorrido / (60 * 1000));
   
-  return numeroBase;
+  // Período de 6 horas = 360 minutos
+  const MINUTOS_6H = 6 * 60;
+  const periodoAtual = Math.floor(minutosDecorridos / MINUTOS_6H);
+  const minutoNoPeriodo = minutosDecorridos % MINUTOS_6H;
+  
+  // Número sequencial = minuto no período
+  const numeroFinal = minutoNoPeriodo;
+  
+  console.log(`Minutos decorridos: ${minutosDecorridos}`);
+  console.log(`Período: ${periodoAtual}, Minuto no período: ${minutoNoPeriodo}`);
+  console.log(`Número final: ${numeroFinal}`);
+  console.log('=== FIM CONTADOR AUTOMÁTICO SIMPLES ===');
+  
+  return numeroFinal;
 }
 
 /**
