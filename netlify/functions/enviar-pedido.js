@@ -1,5 +1,5 @@
 // /.netlify/functions/enviar-pedido.js
-// Implementação corrigida com numeração sequencial global e verificação de data na célula C1
+// Versão com numeração sequencial simples: 0, 1, 2, 3...
 
 exports.handler = async (event, context) => {
   console.log('Função iniciada - handler principal');
@@ -65,9 +65,9 @@ exports.handler = async (event, context) => {
       chavePix = CHAVES_PIX[gorjeta];
     }
 
-    // CORREÇÃO: Buscar CSV da planilha e gerar número do pedido corretamente
+    // NUMERAÇÃO SIMPLES: Gerar número do pedido no formato 0, 1, 2, 3...
     const csv = await buscarCsvDaPlanilha(PLANILHA_CSV_URL);
-    const numeroPedido = await gerarNumeroPedido(csv);
+    const numeroPedido = await gerarNumeroPedidoSimples(csv);
 
     // Formatação da mensagem do Telegram (movida do frontend)
     let textoTelegram = `🎶 *Novo Pedido de Música Nº${numeroPedido}* 🎶\n👤 ${nome}`;
@@ -131,8 +131,7 @@ exports.handler = async (event, context) => {
 };
 
 /**
- * CORREÇÃO: Função para buscar CSV da planilha Google Sheets
- * Agora recebe a URL como parâmetro para evitar erro de variável não definida
+ * Função para buscar CSV da planilha Google Sheets
  */
 async function buscarCsvDaPlanilha(planilhaUrl) {
   console.log('Iniciando fetch do CSV da planilha...');
@@ -153,21 +152,7 @@ async function buscarCsvDaPlanilha(planilhaUrl) {
 }
 
 /**
- * Cache global para controle de numeração sequencial
- * Mantém estado entre diferentes execuções da função
- */
-let cache = {
-  dataCache: null,        // Data atual armazenada no cache
-  contador: 0,           // Contador sequencial global
-  ultimoTimestamp: 0     // Timestamp da última atualização do cache
-};
-
-// Duração do cache: 6 horas em milissegundos
-const CACHE_DURACAO_MS = 6 * 60 * 60 * 1000;
-
-/**
- * CORREÇÃO: Função para ler a célula C1 da planilha (primeira linha, terceira coluna)
- * Lê especificamente a primeira linha e terceira coluna conforme especificado
+ * Função para ler a célula C1 da planilha (primeira linha, terceira coluna)
  */
 function lerCelulaC1(csv) {
   if (!csv) {
@@ -176,20 +161,14 @@ function lerCelulaC1(csv) {
   }
   
   const linhas = csv.split('\n');
-  console.log(`Total de linhas no CSV: ${linhas.length}`);
-  
-  // Verificar se existe a primeira linha (índice 0)
   if (linhas.length < 1) {
     console.log('CSV não possui primeira linha');
     return '';
   }
   
-  // Pegar a primeira linha (índice 0)
   const primeiraLinha = linhas[0];
   const colunas = primeiraLinha.split(',');
-  console.log(`Colunas na primeira linha: ${colunas.length}`);
   
-  // Verificar se existe a coluna C (índice 2)
   if (colunas.length < 3) {
     console.log('Primeira linha não possui coluna C');
     return '';
@@ -202,17 +181,14 @@ function lerCelulaC1(csv) {
 
 /**
  * Função para validar se uma string está no formato de data AAAA-MM-DD
- * Verifica tanto o formato quanto se é uma data válida
  */
 function dataValida(dataStr) {
-  // Verificar formato AAAA-MM-DD
   const regex = /^\d{4}-\d{2}-\d{2}$/;
   if (!regex.test(dataStr)) {
     console.log(`Formato de data inválido: "${dataStr}"`);
     return false;
   }
   
-  // Verificar se é uma data válida
   const d = new Date(dataStr);
   const isValidDate = d instanceof Date && !isNaN(d);
   
@@ -226,68 +202,141 @@ function dataValida(dataStr) {
 }
 
 /**
- * CORREÇÃO: Função principal para gerar número sequencial do pedido
- * Implementa lógica de cache de 6 horas e verificação de data na célula C1
+ * NUMERAÇÃO SIMPLES: Gera números sequenciais 0, 1, 2, 3...
+ * 
+ * ESTRATÉGIA:
+ * 1. Lê a data da célula C1
+ * 2. Calcula minutos desde o início da data
+ * 3. Divide em períodos de 6 horas (360 minutos)
+ * 4. Dentro de cada período, gera números sequenciais simples baseados em minutos
+ * 5. Reinicia em 0 a cada novo período de 6 horas
  */
-async function gerarNumeroPedido(csv) {
+async function gerarNumeroPedidoSimples(csv) {
   const agora = Date.now();
-  console.log('=== INÍCIO GERAÇÃO NÚMERO PEDIDO ===');
+  console.log('=== INÍCIO GERAÇÃO NÚMERO PEDIDO SIMPLES (0, 1, 2...) ===');
   console.log(`Timestamp atual: ${agora}`);
-  console.log(`Cache atual - Data: ${cache.dataCache}, Contador: ${cache.contador}, Último timestamp: ${cache.ultimoTimestamp}`);
   
-  // VERIFICAÇÃO 1: Cache ainda válido (menos de 6 horas)?
-  const cacheValido = cache.dataCache && (agora - cache.ultimoTimestamp) < CACHE_DURACAO_MS;
-  console.log(`Cache válido (< 6h): ${cacheValido}`);
+  // PASSO 1: Ler data da célula C1
+  const dataAtual = lerCelulaC1(csv);
+  console.log(`Data na C1: "${dataAtual}"`);
   
-  if (cacheValido) {
-    // Cache ainda válido, apenas incrementar contador
-    cache.contador++;
-    const numeroAtual = cache.contador;
-    console.log(`Usando cache válido. Novo número: ${numeroAtual}`);
-    console.log('=== FIM GERAÇÃO NÚMERO PEDIDO ===');
-    return numeroAtual;
+  // PASSO 2: Verificar se a data é válida
+  if (!dataValida(dataAtual)) {
+    console.log(`Data inválida: "${dataAtual}". Retornando 0.`);
+    return 0; // Sempre começar em 0 quando data inválida
   }
   
-  // VERIFICAÇÃO 2: Cache expirado ou inexistente, verificar célula C1
-  console.log('Cache expirado ou inexistente. Verificando célula C1...');
-  const valorC1 = lerCelulaC1(csv);
+  // PASSO 3: Converter data para timestamp do início do dia (UTC)
+  const dataObj = new Date(dataAtual + 'T00:00:00.000Z');
+  const timestampInicioData = dataObj.getTime();
   
-  // VERIFICAÇÃO 3: Valor da célula C1 é uma data válida?
-  if (dataValida(valorC1)) {
-    console.log(`Data válida encontrada na C1: ${valorC1}`);
-    
-    // VERIFICAÇÃO 4: É a mesma data do cache anterior?
-    if (valorC1 === cache.dataCache) {
-      // Mesma data, continuar contagem
-      cache.contador++;
-      console.log(`Mesma data do cache. Continuando contagem: ${cache.contador}`);
-    } else {
-      // Data diferente, zerar contador
-      cache.contador = 1; // CORREÇÃO: Começar em 1, não 0
-      cache.dataCache = valorC1;
-      console.log(`Data diferente. Zerando contador. Nova data: ${valorC1}, Contador: ${cache.contador}`);
-    }
-  } else {
-    // Valor inválido na C1, zerar tudo
-    console.log(`Valor inválido na C1: "${valorC1}". Zerando cache.`);
-    cache.contador = 1; // CORREÇÃO: Começar em 1, não 0
-    cache.dataCache = null;
-  }
+  console.log(`Data objeto: ${dataObj.toISOString()}`);
+  console.log(`Timestamp início da data: ${timestampInicioData}`);
   
-  // Atualizar timestamp do cache
-  cache.ultimoTimestamp = agora;
+  // PASSO 4: Calcular minutos desde o início da data
+  const tempoDecorrido = agora - timestampInicioData;
+  const minutosDesdeInicio = Math.floor(tempoDecorrido / (60 * 1000));
   
-  const numeroFinal = cache.contador;
-  console.log(`Número final do pedido: ${numeroFinal}`);
-  console.log(`Cache atualizado - Data: ${cache.dataCache}, Contador: ${cache.contador}, Timestamp: ${cache.ultimoTimestamp}`);
-  console.log('=== FIM GERAÇÃO NÚMERO PEDIDO ===');
+  console.log(`Tempo decorrido: ${tempoDecorrido}ms`);
+  console.log(`Minutos desde início da data: ${minutosDesdeInicio}`);
+  
+  // PASSO 5: Calcular período de 6 horas atual
+  const MINUTOS_6H = 6 * 60; // 360 minutos = 6 horas
+  const periodoAtual = Math.floor(minutosDesdeInicio / MINUTOS_6H);
+  const minutoNoPeriodo = minutosDesdeInicio % MINUTOS_6H;
+  
+  console.log(`Período de 6h atual: ${periodoAtual}`);
+  console.log(`Minuto no período (0-359): ${minutoNoPeriodo}`);
+  
+  // PASSO 6: Gerar número sequencial simples
+  // Usar segundos dentro do minuto para ter mais granularidade
+  const segundosNoMinuto = Math.floor((tempoDecorrido % (60 * 1000)) / 1000);
+  
+  // Número sequencial: minuto no período * 60 + segundos
+  // Isso gera números de 0 a 21599 por período (360 * 60 - 1)
+  const numeroSequencial = minutoNoPeriodo * 60 + segundosNoMinuto;
+  
+  console.log(`Segundos no minuto atual: ${segundosNoMinuto}`);
+  console.log(`Número sequencial calculado: ${numeroSequencial}`);
+  
+  // PASSO 7: Limitar a um range menor para números mais simples
+  // Usar apenas os minutos (0-359) para ter números menores
+  const numeroFinal = minutoNoPeriodo;
+  
+  console.log(`Número final (apenas minutos): ${numeroFinal}`);
+  console.log('=== FIM GERAÇÃO NÚMERO PEDIDO SIMPLES ===');
   
   return numeroFinal;
 }
 
 /**
+ * VERSÃO ALTERNATIVA: Números ainda mais simples (0-99)
+ * Reinicia a cada 100 minutos dentro do período de 6 horas
+ */
+async function gerarNumeroPedidoMuitoSimples(csv) {
+  const agora = Date.now();
+  console.log('=== INÍCIO GERAÇÃO NÚMERO MUITO SIMPLES (0-99) ===');
+  
+  const dataAtual = lerCelulaC1(csv);
+  console.log(`Data na C1: "${dataAtual}"`);
+  
+  if (!dataValida(dataAtual)) {
+    console.log(`Data inválida. Retornando 0.`);
+    return 0;
+  }
+  
+  // Converter data para timestamp do início do dia
+  const dataObj = new Date(dataAtual + 'T00:00:00.000Z');
+  const timestampInicioData = dataObj.getTime();
+  
+  // Calcular minutos desde o início da data
+  const tempoDecorrido = agora - timestampInicioData;
+  const minutosDesdeInicio = Math.floor(tempoDecorrido / (60 * 1000));
+  
+  // Período de 6 horas = 360 minutos
+  const MINUTOS_6H = 6 * 60;
+  const periodoAtual = Math.floor(minutosDesdeInicio / MINUTOS_6H);
+  const minutoNoPeriodo = minutosDesdeInicio % MINUTOS_6H;
+  
+  // Limitar a 100 números (0-99) por período
+  const numeroFinal = minutoNoPeriodo % 100;
+  
+  console.log(`Período: ${periodoAtual}, Minuto no período: ${minutoNoPeriodo}`);
+  console.log(`Número final (0-99): ${numeroFinal}`);
+  console.log('=== FIM GERAÇÃO NÚMERO MUITO SIMPLES ===');
+  
+  return numeroFinal;
+}
+
+/**
+ * VERSÃO ULTRA SIMPLES: Apenas 0, 1, 2, 3, 4... até 59, depois reinicia
+ * Baseado apenas no minuto atual da hora
+ */
+async function gerarNumeroPedidoUltraSimples(csv) {
+  const agora = Date.now();
+  console.log('=== INÍCIO GERAÇÃO NÚMERO ULTRA SIMPLES (0-59) ===');
+  
+  const dataAtual = lerCelulaC1(csv);
+  console.log(`Data na C1: "${dataAtual}"`);
+  
+  if (!dataValida(dataAtual)) {
+    console.log(`Data inválida. Retornando 0.`);
+    return 0;
+  }
+  
+  // Pegar apenas o minuto atual (0-59)
+  const agora_date = new Date();
+  const minutoAtual = agora_date.getMinutes();
+  
+  console.log(`Minuto atual: ${minutoAtual}`);
+  console.log(`Número final: ${minutoAtual}`);
+  console.log('=== FIM GERAÇÃO NÚMERO ULTRA SIMPLES ===');
+  
+  return minutoAtual;
+}
+
+/**
  * Função para enviar mensagem ao Telegram com sistema de retry
- * Implementa múltiplas tentativas com delays progressivos
  */
 async function enviarParaTelegramComRetry(texto, token, chatId, maxTentativas = 3) {
   const url = `https://api.telegram.org/bot${token}/sendMessage`;
@@ -316,14 +365,12 @@ async function enviarParaTelegramComRetry(texto, token, chatId, maxTentativas = 
       } else {
         console.error(`❌ Erro na tentativa ${tentativa}:`, data);
         
-        // Se for erro de rate limit, aguardar mais tempo
         if (response.status === 429) {
           const retryAfter = data.parameters?.retry_after || 1;
           console.log(`⏳ Rate limit detectado. Aguardando ${retryAfter} segundos...`);
           await sleep(retryAfter * 1000);
         } else if (tentativa < maxTentativas) {
-          // Para outros erros, aguardar tempo progressivo
-          const delayMs = tentativa * 1000; // 1s, 2s, 3s...
+          const delayMs = tentativa * 1000;
           console.log(`⏳ Aguardando ${delayMs}ms antes da próxima tentativa...`);
           await sleep(delayMs);
         }
@@ -332,7 +379,7 @@ async function enviarParaTelegramComRetry(texto, token, chatId, maxTentativas = 
       console.error(`❌ Erro de rede na tentativa ${tentativa}:`, error);
       
       if (tentativa < maxTentativas) {
-        const delayMs = tentativa * 2000; // 2s, 4s, 6s...
+        const delayMs = tentativa * 2000;
         console.log(`⏳ Aguardando ${delayMs}ms antes da próxima tentativa...`);
         await sleep(delayMs);
       }
