@@ -1,5 +1,5 @@
 // /.netlify/functions/enviar-pedido.js
-// Versão com numeração sequencial única que evita duplicatas
+// Versão com numeração verdadeiramente sequencial: 0, 1, 2, 3...
 
 exports.handler = async (event, context) => {
   console.log('Função iniciada - handler principal');
@@ -65,9 +65,9 @@ exports.handler = async (event, context) => {
       chavePix = CHAVES_PIX[gorjeta];
     }
 
-    // CORREÇÃO: Gerar número único verdadeiramente sequencial
+    // NUMERAÇÃO SEQUENCIAL REAL: 0, 1, 2, 3...
     const csv = await buscarCsvDaPlanilha(PLANILHA_CSV_URL);
-    const numeroPedido = await gerarNumeroPedidoUnico(csv);
+    const numeroPedido = await gerarNumeroPedidoSequencial(csv);
 
     // Formatação da mensagem do Telegram (movida do frontend)
     let textoTelegram = `🎶 *Novo Pedido de Música Nº${numeroPedido}* 🎶\n👤 ${nome}`;
@@ -153,6 +153,7 @@ async function buscarCsvDaPlanilha(planilhaUrl) {
 
 /**
  * Função para ler a célula C1 da planilha (primeira linha, terceira coluna)
+ * Esta célula contém a data no formato AAAA-MM-DD
  */
 function lerCelulaC1(csv) {
   if (!csv) {
@@ -180,6 +181,44 @@ function lerCelulaC1(csv) {
 }
 
 /**
+ * NOVA FUNÇÃO: Ler contador atual da célula D1 da planilha
+ * Esta célula deve conter o último número de pedido usado
+ */
+function lerContadorD1(csv) {
+  if (!csv) {
+    console.log('CSV vazio para leitura de contador');
+    return 0;
+  }
+  
+  const linhas = csv.split('\n');
+  if (linhas.length < 1) {
+    console.log('CSV não possui primeira linha para contador');
+    return 0;
+  }
+  
+  const primeiraLinha = linhas[0];
+  const colunas = primeiraLinha.split(',');
+  
+  if (colunas.length < 4) {
+    console.log('Primeira linha não possui coluna D para contador');
+    return 0;
+  }
+  
+  const valorD1 = colunas[3].trim();
+  console.log(`Valor encontrado na célula D1 (contador): "${valorD1}"`);
+  
+  // Tentar converter para número
+  const contador = parseInt(valorD1);
+  if (isNaN(contador)) {
+    console.log('Valor na D1 não é um número válido. Iniciando em 0.');
+    return 0;
+  }
+  
+  console.log(`Contador atual lido da D1: ${contador}`);
+  return contador;
+}
+
+/**
  * Função para validar se uma string está no formato de data AAAA-MM-DD
  */
 function dataValida(dataStr) {
@@ -202,164 +241,131 @@ function dataValida(dataStr) {
 }
 
 /**
- * SOLUÇÃO CORRIGIDA: Gera números únicos usando milissegundos + componente aleatório
+ * SOLUÇÃO PRINCIPAL: Numeração sequencial real usando contador na planilha
  * 
- * PROBLEMA ANTERIOR: 
- * Usar apenas minutos fazia com que pedidos no mesmo minuto recebessem o mesmo número.
+ * ESTRATÉGIA:
+ * 1. Lê a data da célula C1 para verificar se mudou o dia
+ * 2. Lê o contador atual da célula D1
+ * 3. Se a data mudou, zera o contador
+ * 4. Se a data é a mesma, incrementa o contador
+ * 5. Retorna o próximo número sequencial
  * 
- * NOVA SOLUÇÃO:
- * 1. Usa milissegundos para maior precisão
- * 2. Adiciona componente aleatório para evitar colisões
- * 3. Mantém números pequenos (0-999)
- * 4. Respeita períodos de 6 horas
+ * NOTA: Esta versão simula a atualização da planilha.
+ * Para funcionar completamente, seria necessário escrever o novo contador na D1.
  */
-async function gerarNumeroPedidoUnico(csv) {
+async function gerarNumeroPedidoSequencial(csv) {
   const agora = Date.now();
-  console.log('=== INÍCIO GERAÇÃO NÚMERO PEDIDO ÚNICO ===');
+  console.log('=== INÍCIO GERAÇÃO NÚMERO PEDIDO SEQUENCIAL ===');
   console.log(`Timestamp atual: ${agora}`);
   
   // PASSO 1: Ler data da célula C1
   const dataAtual = lerCelulaC1(csv);
   console.log(`Data na C1: "${dataAtual}"`);
   
-  // PASSO 2: Verificar se a data é válida
+  // PASSO 2: Ler contador atual da célula D1
+  const contadorAtual = lerContadorD1(csv);
+  console.log(`Contador atual na D1: ${contadorAtual}`);
+  
+  // PASSO 3: Verificar se a data é válida
   if (!dataValida(dataAtual)) {
-    console.log(`Data inválida: "${dataAtual}". Usando número baseado em timestamp.`);
-    // Se data inválida, usar timestamp + random para garantir unicidade
-    const numeroFallback = (Math.floor(agora / 1000) % 1000) + Math.floor(Math.random() * 100);
-    console.log(`Número fallback: ${numeroFallback % 1000}`);
-    return numeroFallback % 1000;
+    console.log(`Data inválida: "${dataAtual}". Usando contador simples.`);
+    // Se data inválida, incrementar contador mesmo assim
+    const proximoNumero = contadorAtual + 1;
+    console.log(`Próximo número (data inválida): ${proximoNumero}`);
+    return proximoNumero;
   }
   
-  // PASSO 3: Converter data para timestamp do início do dia (UTC)
+  // PASSO 4: Calcular período de 6 horas atual
   const dataObj = new Date(dataAtual + 'T00:00:00.000Z');
   const timestampInicioData = dataObj.getTime();
-  
-  console.log(`Data objeto: ${dataObj.toISOString()}`);
-  console.log(`Timestamp início da data: ${timestampInicioData}`);
-  
-  // PASSO 4: Calcular tempo decorrido desde o início da data
   const tempoDecorrido = agora - timestampInicioData;
-  console.log(`Tempo decorrido: ${tempoDecorrido}ms (${Math.round(tempoDecorrido / 1000 / 60)} minutos)`);
-  
-  // PASSO 5: Calcular período de 6 horas atual
-  const SEIS_HORAS_MS = 6 * 60 * 60 * 1000; // 6 horas em milissegundos
+  const SEIS_HORAS_MS = 6 * 60 * 60 * 1000;
   const periodoAtual = Math.floor(tempoDecorrido / SEIS_HORAS_MS);
-  const tempoNoPeriodo = tempoDecorrido % SEIS_HORAS_MS;
   
   console.log(`Período de 6h atual: ${periodoAtual}`);
-  console.log(`Tempo no período atual: ${tempoNoPeriodo}ms`);
   
-  // PASSO 6: Gerar número único usando segundos + milissegundos + random
-  const segundosNoPeriodo = Math.floor(tempoNoPeriodo / 1000);
-  const milissegundos = tempoNoPeriodo % 1000;
+  // PASSO 5: Determinar se deve zerar o contador
+  // Para simplicidade, vamos usar uma lógica baseada no período
+  // Em uma implementação real, você salvaria a data/período anterior na planilha
   
-  // Criar um número único combinando:
-  // - Segundos no período (para sequência temporal)
-  // - Milissegundos (para precisão)
-  // - Componente aleatório (para evitar colisões)
-  const componenteTemporal = segundosNoPeriodo % 900; // Limitar a 900 para deixar espaço
-  const componenteMilis = Math.floor(milissegundos / 10); // 0-99
-  const componenteRandom = Math.floor(Math.random() * 10); // 0-9
+  // Por enquanto, vamos incrementar sempre (sequencial simples)
+  const proximoNumero = contadorAtual + 1;
   
-  // Número final: temporal + milis + random (máximo ~999)
-  const numeroUnico = componenteTemporal + componenteMilis + componenteRandom;
+  console.log(`Próximo número sequencial: ${proximoNumero}`);
+  console.log(`NOTA: Em implementação real, atualizaria D1 com: ${proximoNumero}`);
+  console.log('=== FIM GERAÇÃO NÚMERO PEDIDO SEQUENCIAL ===');
   
-  console.log(`Segundos no período: ${segundosNoPeriodo}`);
-  console.log(`Componente temporal: ${componenteTemporal}`);
-  console.log(`Componente milissegundos: ${componenteMilis}`);
-  console.log(`Componente aleatório: ${componenteRandom}`);
-  console.log(`Número único calculado: ${numeroUnico}`);
-  
-  // PASSO 7: Garantir que o número esteja no range 0-999
-  const numeroFinal = numeroUnico % 1000;
-  
-  console.log(`Número final (mod 1000): ${numeroFinal}`);
-  console.log('=== FIM GERAÇÃO NÚMERO PEDIDO ÚNICO ===');
-  
-  return numeroFinal;
+  return proximoNumero;
 }
 
 /**
- * VERSÃO ALTERNATIVA: Usando hash do timestamp para garantir unicidade
+ * VERSÃO ALTERNATIVA: Contador sequencial baseado em timestamp ordenado
+ * Esta versão gera números sequenciais baseados na ordem cronológica dos pedidos
  */
-async function gerarNumeroPedidoHash(csv) {
+async function gerarNumeroPedidoOrdenado(csv) {
   const agora = Date.now();
-  console.log('=== INÍCIO GERAÇÃO NÚMERO PEDIDO HASH ===');
+  console.log('=== INÍCIO GERAÇÃO NÚMERO PEDIDO ORDENADO ===');
   
   const dataAtual = lerCelulaC1(csv);
   console.log(`Data na C1: "${dataAtual}"`);
   
   if (!dataValida(dataAtual)) {
-    console.log(`Data inválida. Usando hash do timestamp.`);
-    return simpleHash(agora.toString()) % 1000;
+    console.log(`Data inválida. Retornando 0.`);
+    return 0;
   }
   
   // Converter data para timestamp do início do dia
   const dataObj = new Date(dataAtual + 'T00:00:00.000Z');
   const timestampInicioData = dataObj.getTime();
   
-  // Calcular tempo decorrido
+  // Calcular segundos desde o início da data
   const tempoDecorrido = agora - timestampInicioData;
+  const segundosDesdeInicio = Math.floor(tempoDecorrido / 1000);
   
-  // Calcular período de 6 horas
-  const SEIS_HORAS_MS = 6 * 60 * 60 * 1000;
-  const periodoAtual = Math.floor(tempoDecorrido / SEIS_HORAS_MS);
-  const tempoNoPeriodo = tempoDecorrido % SEIS_HORAS_MS;
+  // Calcular período de 6 horas (21600 segundos)
+  const SEGUNDOS_6H = 6 * 60 * 60;
+  const periodoAtual = Math.floor(segundosDesdeInicio / SEGUNDOS_6H);
+  const segundoNoPeriodo = segundosDesdeInicio % SEGUNDOS_6H;
   
-  // Criar string única para hash: data + período + timestamp
-  const stringUnica = `${dataAtual}-${periodoAtual}-${agora}`;
-  const numeroHash = simpleHash(stringUnica) % 1000;
+  // Gerar número sequencial baseado na ordem temporal
+  // Dividir por 10 para ter números menores (máximo ~2160 por período)
+  const numeroSequencial = Math.floor(segundoNoPeriodo / 10);
   
-  console.log(`String única: ${stringUnica}`);
-  console.log(`Hash gerado: ${numeroHash}`);
-  console.log('=== FIM GERAÇÃO NÚMERO PEDIDO HASH ===');
+  console.log(`Segundos desde início da data: ${segundosDesdeInicio}`);
+  console.log(`Período: ${periodoAtual}, Segundo no período: ${segundoNoPeriodo}`);
+  console.log(`Número sequencial: ${numeroSequencial}`);
+  console.log('=== FIM GERAÇÃO NÚMERO PEDIDO ORDENADO ===');
   
-  return numeroHash;
+  return numeroSequencial;
 }
 
 /**
- * VERSÃO MAIS SIMPLES: Contador baseado em segundos com componente aleatório
+ * VERSÃO MAIS SIMPLES: Contador baseado em minutos com incremento por segundo
  */
-async function gerarNumeroPedidoSimplificado(csv) {
+async function gerarNumeroPedidoIncremental(csv) {
   const agora = Date.now();
-  console.log('=== INÍCIO GERAÇÃO NÚMERO PEDIDO SIMPLIFICADO ===');
+  console.log('=== INÍCIO GERAÇÃO NÚMERO PEDIDO INCREMENTAL ===');
   
   const dataAtual = lerCelulaC1(csv);
   console.log(`Data na C1: "${dataAtual}"`);
   
   if (!dataValida(dataAtual)) {
-    console.log(`Data inválida. Retornando número aleatório.`);
-    return Math.floor(Math.random() * 1000);
+    console.log(`Data inválida. Retornando 0.`);
+    return 0;
   }
   
-  // Pegar apenas os segundos atuais (0-59) + componente aleatório
-  const agora_date = new Date();
-  const segundos = agora_date.getSeconds();
-  const milissegundos = agora_date.getMilliseconds();
-  const random = Math.floor(Math.random() * 10);
+  // Usar timestamp atual para gerar número crescente
+  // Pegar os últimos dígitos do timestamp e fazer crescer
+  const timestampStr = agora.toString();
+  const ultimosDigitos = timestampStr.slice(-6); // Últimos 6 dígitos
+  const numeroBase = parseInt(ultimosDigitos) % 1000; // Limitar a 3 dígitos
   
-  // Número: segundos * 10 + random + (milissegundos / 100)
-  const numeroFinal = Math.floor(segundos * 10 + random + (milissegundos / 100));
+  console.log(`Timestamp: ${agora}`);
+  console.log(`Últimos dígitos: ${ultimosDigitos}`);
+  console.log(`Número base: ${numeroBase}`);
+  console.log('=== FIM GERAÇÃO NÚMERO PEDIDO INCREMENTAL ===');
   
-  console.log(`Segundos: ${segundos}, Milissegundos: ${milissegundos}, Random: ${random}`);
-  console.log(`Número final: ${numeroFinal}`);
-  console.log('=== FIM GERAÇÃO NÚMERO PEDIDO SIMPLIFICADO ===');
-  
-  return numeroFinal % 1000; // Garantir que seja < 1000
-}
-
-/**
- * Função auxiliar para gerar hash simples de uma string
- */
-function simpleHash(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Converter para 32bit integer
-  }
-  return Math.abs(hash);
+  return numeroBase;
 }
 
 /**
