@@ -1,9 +1,7 @@
 // /.netlify/functions/enviar-pedido.js
-// Versão SIMPLIFICADA - Sem dependência da planilha Google Sheets
+// Nova implementação com toda a lógica movida do frontend
 
 exports.handler = async (event, context) => {
-  console.log('Função iniciada - handler principal');
-  
   // Handler para OPTIONS (CORS)
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -64,8 +62,8 @@ exports.handler = async (event, context) => {
       chavePix = CHAVES_PIX[gorjeta];
     }
 
-    // CONTADOR SIMPLIFICADO - SEM PLANILHA
-    const numeroPedido = await contadorSimplificado();
+    // Gerar número do pedido (lógica movida do frontend)
+    const numeroPedido = await gerarNumeroPedido();
 
     // Formatação da mensagem do Telegram (movida do frontend)
     let textoTelegram = `🎶 *Novo Pedido de Música Nº${numeroPedido}* 🎶\n👤 ${nome}`;
@@ -128,129 +126,19 @@ exports.handler = async (event, context) => {
   }
 };
 
-/**
- * CONTADOR SIMPLIFICADO
- * 
- * ZERO DEPENDÊNCIAS:
- * - Não precisa ler planilha Google Sheets
- * - Não precisa instalar bibliotecas
- * - Usa apenas fetch() nativo do JavaScript
- * 
- * FUNCIONAMENTO:
- * 1. Tenta usar CountAPI (serviço externo gratuito)
- * 2. Se falhar, usa algoritmo local baseado em timestamp
- * 3. Sempre retorna número sequencial
- */
-async function contadorSimplificado() {
-  console.log('=== INÍCIO CONTADOR SIMPLIFICADO ===');
-  
-  // OPÇÃO 1: CountAPI (sem instalação, só requisição HTTP)
-  try {
-    const numeroExterno = await usarCountAPI();
-    if (numeroExterno !== null) {
-      console.log(`Número do CountAPI: ${numeroExterno}`);
-      return numeroExterno;
-    }
-  } catch (error) {
-    console.log('CountAPI falhou, usando fallback local');
+let contador = 0;
+let dataAtual = new Date().toISOString().slice(0, 10);
+
+async function gerarNumeroPedido() {
+  const hoje = new Date().toISOString().slice(0, 10);
+  if (hoje !== dataAtual) {
+    contador = 0;
+    dataAtual = hoje;
   }
-  
-  // OPÇÃO 2: Fallback local (sem dependências)
-  const numeroLocal = gerarNumeroLocal();
-  console.log(`Número local: ${numeroLocal}`);
-  
-  console.log('=== FIM CONTADOR SIMPLIFICADO ===');
-  return numeroLocal;
+  return contador++;  // retorna o número atual e incrementa para o próximo
 }
 
-/**
- * COUNTAPI - Serviço gratuito de contador
- * 
- * VANTAGENS:
- * - Totalmente gratuito
- * - Não precisa cadastro
- * - Não precisa instalar nada
- * - Apenas uma requisição HTTP GET
- * - Suporta pedidos simultâneos
- * - Números sequenciais garantidos
- * 
- * COMO FUNCIONA:
- * - Cada requisição incrementa automaticamente
- * - Retorna o novo valor
- * - Persiste entre execuções
- */
-async function usarCountAPI() {
-  console.log('Tentando usar CountAPI...');
-  
-  try {
-    // Configurar seu namespace único (troque por algo único seu)
-    const namespace = 'pedidos-musica-2025'; // MUDE ISSO para algo único
-    const key = 'contador-principal';
-    const url = `https://api.countapi.xyz/hit/${namespace}/${key}`;
-    
-    console.log(`URL CountAPI: ${url}`);
-    
-    // Fazer requisição simples (sem bibliotecas)
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'User-Agent': 'Netlify-Function'
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    console.log('Resposta CountAPI:', data);
-    
-    // Verificar se retornou valor válido
-    if (data && typeof data.value === 'number') {
-      // Ajustar para começar em 0 (CountAPI começa em 1)
-      const numeroAjustado = Math.max(0, data.value - 1);
-      console.log(`CountAPI: ${data.value} → Ajustado: ${numeroAjustado}`);
-      return numeroAjustado;
-    }
-    
-    throw new Error('Resposta inválida do CountAPI');
-    
-  } catch (error) {
-    console.error('Erro no CountAPI:', error.message);
-    return null; // Indica falha
-  }
-}
-
-/**
- * GERADOR LOCAL (Fallback)
- * 
- * Algoritmo simples que funciona sem dependências:
- * - Usa timestamp atual
- * - Gera números crescentes
- * - Funciona offline
- */
-function gerarNumeroLocal() {
-  console.log('Gerando número local...');
-  
-  const agora = Date.now();
-  
-  // Usar timestamp como base (últimos dígitos)
-  const timestampStr = agora.toString();
-  const ultimosDigitos = timestampStr.slice(-6); // Últimos 6 dígitos
-  
-  // Converter para número e limitar range
-  const numeroBase = parseInt(ultimosDigitos) % 10000; // 0-9999
-  
-  console.log(`Timestamp: ${agora}`);
-  console.log(`Últimos dígitos: ${ultimosDigitos}`);
-  console.log(`Número local: ${numeroBase}`);
-  
-  return numeroBase;
-}
-
-/**
- * Função para enviar mensagem ao Telegram com sistema de retry
- */
+// Função para enviar ao Telegram COM RETRY
 async function enviarParaTelegramComRetry(texto, token, chatId, maxTentativas = 3) {
   const url = `https://api.telegram.org/bot${token}/sendMessage`;
   
@@ -278,12 +166,14 @@ async function enviarParaTelegramComRetry(texto, token, chatId, maxTentativas = 
       } else {
         console.error(`❌ Erro na tentativa ${tentativa}:`, data);
         
+        // Se for erro de rate limit, aguardar mais tempo
         if (response.status === 429) {
           const retryAfter = data.parameters?.retry_after || 1;
           console.log(`⏳ Rate limit detectado. Aguardando ${retryAfter} segundos...`);
           await sleep(retryAfter * 1000);
         } else if (tentativa < maxTentativas) {
-          const delayMs = tentativa * 1000;
+          // Para outros erros, aguardar tempo progressivo
+          const delayMs = tentativa * 1000; // 1s, 2s, 3s...
           console.log(`⏳ Aguardando ${delayMs}ms antes da próxima tentativa...`);
           await sleep(delayMs);
         }
@@ -292,7 +182,7 @@ async function enviarParaTelegramComRetry(texto, token, chatId, maxTentativas = 
       console.error(`❌ Erro de rede na tentativa ${tentativa}:`, error);
       
       if (tentativa < maxTentativas) {
-        const delayMs = tentativa * 2000;
+        const delayMs = tentativa * 2000; // 2s, 4s, 6s...
         console.log(`⏳ Aguardando ${delayMs}ms antes da próxima tentativa...`);
         await sleep(delayMs);
       }
@@ -303,10 +193,7 @@ async function enviarParaTelegramComRetry(texto, token, chatId, maxTentativas = 
   return false;
 }
 
-/**
- * Função auxiliar para aguardar um tempo específico
- */
+// Função auxiliar para aguardar
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
-
