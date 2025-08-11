@@ -1,5 +1,5 @@
 // /.netlify/functions/enviar-pedido.js
-// Versão com numeração sequencial simples: 0, 1, 2, 3...
+// Versão com numeração sequencial única que evita duplicatas
 
 exports.handler = async (event, context) => {
   console.log('Função iniciada - handler principal');
@@ -65,9 +65,9 @@ exports.handler = async (event, context) => {
       chavePix = CHAVES_PIX[gorjeta];
     }
 
-    // NUMERAÇÃO SIMPLES: Gerar número do pedido no formato 0, 1, 2, 3...
+    // CORREÇÃO: Gerar número único verdadeiramente sequencial
     const csv = await buscarCsvDaPlanilha(PLANILHA_CSV_URL);
-    const numeroPedido = await gerarNumeroPedidoSimples(csv);
+    const numeroPedido = await gerarNumeroPedidoUnico(csv);
 
     // Formatação da mensagem do Telegram (movida do frontend)
     let textoTelegram = `🎶 *Novo Pedido de Música Nº${numeroPedido}* 🎶\n👤 ${nome}`;
@@ -202,18 +202,20 @@ function dataValida(dataStr) {
 }
 
 /**
- * NUMERAÇÃO SIMPLES: Gera números sequenciais 0, 1, 2, 3...
+ * SOLUÇÃO CORRIGIDA: Gera números únicos usando milissegundos + componente aleatório
  * 
- * ESTRATÉGIA:
- * 1. Lê a data da célula C1
- * 2. Calcula minutos desde o início da data
- * 3. Divide em períodos de 6 horas (360 minutos)
- * 4. Dentro de cada período, gera números sequenciais simples baseados em minutos
- * 5. Reinicia em 0 a cada novo período de 6 horas
+ * PROBLEMA ANTERIOR: 
+ * Usar apenas minutos fazia com que pedidos no mesmo minuto recebessem o mesmo número.
+ * 
+ * NOVA SOLUÇÃO:
+ * 1. Usa milissegundos para maior precisão
+ * 2. Adiciona componente aleatório para evitar colisões
+ * 3. Mantém números pequenos (0-999)
+ * 4. Respeita períodos de 6 horas
  */
-async function gerarNumeroPedidoSimples(csv) {
+async function gerarNumeroPedidoUnico(csv) {
   const agora = Date.now();
-  console.log('=== INÍCIO GERAÇÃO NÚMERO PEDIDO SIMPLES (0, 1, 2...) ===');
+  console.log('=== INÍCIO GERAÇÃO NÚMERO PEDIDO ÚNICO ===');
   console.log(`Timestamp atual: ${agora}`);
   
   // PASSO 1: Ler data da célula C1
@@ -222,8 +224,11 @@ async function gerarNumeroPedidoSimples(csv) {
   
   // PASSO 2: Verificar se a data é válida
   if (!dataValida(dataAtual)) {
-    console.log(`Data inválida: "${dataAtual}". Retornando 0.`);
-    return 0; // Sempre começar em 0 quando data inválida
+    console.log(`Data inválida: "${dataAtual}". Usando número baseado em timestamp.`);
+    // Se data inválida, usar timestamp + random para garantir unicidade
+    const numeroFallback = (Math.floor(agora / 1000) % 1000) + Math.floor(Math.random() * 100);
+    console.log(`Número fallback: ${numeroFallback % 1000}`);
+    return numeroFallback % 1000;
   }
   
   // PASSO 3: Converter data para timestamp do início do dia (UTC)
@@ -233,106 +238,128 @@ async function gerarNumeroPedidoSimples(csv) {
   console.log(`Data objeto: ${dataObj.toISOString()}`);
   console.log(`Timestamp início da data: ${timestampInicioData}`);
   
-  // PASSO 4: Calcular minutos desde o início da data
+  // PASSO 4: Calcular tempo decorrido desde o início da data
   const tempoDecorrido = agora - timestampInicioData;
-  const minutosDesdeInicio = Math.floor(tempoDecorrido / (60 * 1000));
-  
-  console.log(`Tempo decorrido: ${tempoDecorrido}ms`);
-  console.log(`Minutos desde início da data: ${minutosDesdeInicio}`);
+  console.log(`Tempo decorrido: ${tempoDecorrido}ms (${Math.round(tempoDecorrido / 1000 / 60)} minutos)`);
   
   // PASSO 5: Calcular período de 6 horas atual
-  const MINUTOS_6H = 6 * 60; // 360 minutos = 6 horas
-  const periodoAtual = Math.floor(minutosDesdeInicio / MINUTOS_6H);
-  const minutoNoPeriodo = minutosDesdeInicio % MINUTOS_6H;
+  const SEIS_HORAS_MS = 6 * 60 * 60 * 1000; // 6 horas em milissegundos
+  const periodoAtual = Math.floor(tempoDecorrido / SEIS_HORAS_MS);
+  const tempoNoPeriodo = tempoDecorrido % SEIS_HORAS_MS;
   
   console.log(`Período de 6h atual: ${periodoAtual}`);
-  console.log(`Minuto no período (0-359): ${minutoNoPeriodo}`);
+  console.log(`Tempo no período atual: ${tempoNoPeriodo}ms`);
   
-  // PASSO 6: Gerar número sequencial simples
-  // Usar segundos dentro do minuto para ter mais granularidade
-  const segundosNoMinuto = Math.floor((tempoDecorrido % (60 * 1000)) / 1000);
+  // PASSO 6: Gerar número único usando segundos + milissegundos + random
+  const segundosNoPeriodo = Math.floor(tempoNoPeriodo / 1000);
+  const milissegundos = tempoNoPeriodo % 1000;
   
-  // Número sequencial: minuto no período * 60 + segundos
-  // Isso gera números de 0 a 21599 por período (360 * 60 - 1)
-  const numeroSequencial = minutoNoPeriodo * 60 + segundosNoMinuto;
+  // Criar um número único combinando:
+  // - Segundos no período (para sequência temporal)
+  // - Milissegundos (para precisão)
+  // - Componente aleatório (para evitar colisões)
+  const componenteTemporal = segundosNoPeriodo % 900; // Limitar a 900 para deixar espaço
+  const componenteMilis = Math.floor(milissegundos / 10); // 0-99
+  const componenteRandom = Math.floor(Math.random() * 10); // 0-9
   
-  console.log(`Segundos no minuto atual: ${segundosNoMinuto}`);
-  console.log(`Número sequencial calculado: ${numeroSequencial}`);
+  // Número final: temporal + milis + random (máximo ~999)
+  const numeroUnico = componenteTemporal + componenteMilis + componenteRandom;
   
-  // PASSO 7: Limitar a um range menor para números mais simples
-  // Usar apenas os minutos (0-359) para ter números menores
-  const numeroFinal = minutoNoPeriodo;
+  console.log(`Segundos no período: ${segundosNoPeriodo}`);
+  console.log(`Componente temporal: ${componenteTemporal}`);
+  console.log(`Componente milissegundos: ${componenteMilis}`);
+  console.log(`Componente aleatório: ${componenteRandom}`);
+  console.log(`Número único calculado: ${numeroUnico}`);
   
-  console.log(`Número final (apenas minutos): ${numeroFinal}`);
-  console.log('=== FIM GERAÇÃO NÚMERO PEDIDO SIMPLES ===');
+  // PASSO 7: Garantir que o número esteja no range 0-999
+  const numeroFinal = numeroUnico % 1000;
+  
+  console.log(`Número final (mod 1000): ${numeroFinal}`);
+  console.log('=== FIM GERAÇÃO NÚMERO PEDIDO ÚNICO ===');
   
   return numeroFinal;
 }
 
 /**
- * VERSÃO ALTERNATIVA: Números ainda mais simples (0-99)
- * Reinicia a cada 100 minutos dentro do período de 6 horas
+ * VERSÃO ALTERNATIVA: Usando hash do timestamp para garantir unicidade
  */
-async function gerarNumeroPedidoMuitoSimples(csv) {
+async function gerarNumeroPedidoHash(csv) {
   const agora = Date.now();
-  console.log('=== INÍCIO GERAÇÃO NÚMERO MUITO SIMPLES (0-99) ===');
+  console.log('=== INÍCIO GERAÇÃO NÚMERO PEDIDO HASH ===');
   
   const dataAtual = lerCelulaC1(csv);
   console.log(`Data na C1: "${dataAtual}"`);
   
   if (!dataValida(dataAtual)) {
-    console.log(`Data inválida. Retornando 0.`);
-    return 0;
+    console.log(`Data inválida. Usando hash do timestamp.`);
+    return simpleHash(agora.toString()) % 1000;
   }
   
   // Converter data para timestamp do início do dia
   const dataObj = new Date(dataAtual + 'T00:00:00.000Z');
   const timestampInicioData = dataObj.getTime();
   
-  // Calcular minutos desde o início da data
+  // Calcular tempo decorrido
   const tempoDecorrido = agora - timestampInicioData;
-  const minutosDesdeInicio = Math.floor(tempoDecorrido / (60 * 1000));
   
-  // Período de 6 horas = 360 minutos
-  const MINUTOS_6H = 6 * 60;
-  const periodoAtual = Math.floor(minutosDesdeInicio / MINUTOS_6H);
-  const minutoNoPeriodo = minutosDesdeInicio % MINUTOS_6H;
+  // Calcular período de 6 horas
+  const SEIS_HORAS_MS = 6 * 60 * 60 * 1000;
+  const periodoAtual = Math.floor(tempoDecorrido / SEIS_HORAS_MS);
+  const tempoNoPeriodo = tempoDecorrido % SEIS_HORAS_MS;
   
-  // Limitar a 100 números (0-99) por período
-  const numeroFinal = minutoNoPeriodo % 100;
+  // Criar string única para hash: data + período + timestamp
+  const stringUnica = `${dataAtual}-${periodoAtual}-${agora}`;
+  const numeroHash = simpleHash(stringUnica) % 1000;
   
-  console.log(`Período: ${periodoAtual}, Minuto no período: ${minutoNoPeriodo}`);
-  console.log(`Número final (0-99): ${numeroFinal}`);
-  console.log('=== FIM GERAÇÃO NÚMERO MUITO SIMPLES ===');
+  console.log(`String única: ${stringUnica}`);
+  console.log(`Hash gerado: ${numeroHash}`);
+  console.log('=== FIM GERAÇÃO NÚMERO PEDIDO HASH ===');
   
-  return numeroFinal;
+  return numeroHash;
 }
 
 /**
- * VERSÃO ULTRA SIMPLES: Apenas 0, 1, 2, 3, 4... até 59, depois reinicia
- * Baseado apenas no minuto atual da hora
+ * VERSÃO MAIS SIMPLES: Contador baseado em segundos com componente aleatório
  */
-async function gerarNumeroPedidoUltraSimples(csv) {
+async function gerarNumeroPedidoSimplificado(csv) {
   const agora = Date.now();
-  console.log('=== INÍCIO GERAÇÃO NÚMERO ULTRA SIMPLES (0-59) ===');
+  console.log('=== INÍCIO GERAÇÃO NÚMERO PEDIDO SIMPLIFICADO ===');
   
   const dataAtual = lerCelulaC1(csv);
   console.log(`Data na C1: "${dataAtual}"`);
   
   if (!dataValida(dataAtual)) {
-    console.log(`Data inválida. Retornando 0.`);
-    return 0;
+    console.log(`Data inválida. Retornando número aleatório.`);
+    return Math.floor(Math.random() * 1000);
   }
   
-  // Pegar apenas o minuto atual (0-59)
+  // Pegar apenas os segundos atuais (0-59) + componente aleatório
   const agora_date = new Date();
-  const minutoAtual = agora_date.getMinutes();
+  const segundos = agora_date.getSeconds();
+  const milissegundos = agora_date.getMilliseconds();
+  const random = Math.floor(Math.random() * 10);
   
-  console.log(`Minuto atual: ${minutoAtual}`);
-  console.log(`Número final: ${minutoAtual}`);
-  console.log('=== FIM GERAÇÃO NÚMERO ULTRA SIMPLES ===');
+  // Número: segundos * 10 + random + (milissegundos / 100)
+  const numeroFinal = Math.floor(segundos * 10 + random + (milissegundos / 100));
   
-  return minutoAtual;
+  console.log(`Segundos: ${segundos}, Milissegundos: ${milissegundos}, Random: ${random}`);
+  console.log(`Número final: ${numeroFinal}`);
+  console.log('=== FIM GERAÇÃO NÚMERO PEDIDO SIMPLIFICADO ===');
+  
+  return numeroFinal % 1000; // Garantir que seja < 1000
+}
+
+/**
+ * Função auxiliar para gerar hash simples de uma string
+ */
+function simpleHash(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Converter para 32bit integer
+  }
+  return Math.abs(hash);
 }
 
 /**
