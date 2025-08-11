@@ -1,8 +1,9 @@
 // /.netlify/functions/enviar-pedido.js
-// Nova implementação com toda a lógica movida do frontend
+// Implementação corrigida com numeração sequencial global e verificação de data na célula C1
 
 exports.handler = async (event, context) => {
   console.log('Função iniciada - handler principal');
+  
   // Handler para OPTIONS (CORS)
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -27,7 +28,7 @@ exports.handler = async (event, context) => {
     "outro": "00020126690014BR.GOV.BCB.PIX0136f4573753-c26d-4609-9610-89c810b03e310207gorjeta5204000053039865802BR5925Pedro Henrique Martins Te6009SAO PAULO62140510M5x3KrERij6304C4FC"
   };
 
-  // Configurações do Telegram
+  // Configurações do Telegram e Google Sheets
   const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
   const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
   const PLANILHA_CSV_URL = process.env.PLANILHA_CSV_URL;
@@ -64,8 +65,9 @@ exports.handler = async (event, context) => {
       chavePix = CHAVES_PIX[gorjeta];
     }
 
-    // Gerar número do pedido (lógica movida do frontend)
-    const numeroPedido = await gerarNumeroPedido();
+    // CORREÇÃO: Buscar CSV da planilha e gerar número do pedido corretamente
+    const csv = await buscarCsvDaPlanilha(PLANILHA_CSV_URL);
+    const numeroPedido = await gerarNumeroPedido(csv);
 
     // Formatação da mensagem do Telegram (movida do frontend)
     let textoTelegram = `🎶 *Novo Pedido de Música Nº${numeroPedido}* 🎶\n👤 ${nome}`;
@@ -128,78 +130,165 @@ exports.handler = async (event, context) => {
   }
 };
 
-async function buscarCsvDaPlanilha() {
+/**
+ * CORREÇÃO: Função para buscar CSV da planilha Google Sheets
+ * Agora recebe a URL como parâmetro para evitar erro de variável não definida
+ */
+async function buscarCsvDaPlanilha(planilhaUrl) {
   console.log('Iniciando fetch do CSV da planilha...');
-  const response = await fetch(PLANILHA_CSV_URL);
+  
+  if (!planilhaUrl) {
+    throw new Error('URL da planilha não configurada');
+  }
+  
+  const response = await fetch(planilhaUrl);
   if (!response.ok) {
     console.error('Erro ao buscar CSV:', response.status);
     throw new Error('Falha ao buscar a planilha CSV');
   }
+  
   const csv = await response.text();
   console.log('CSV recebido (primeiros 200 caracteres):', csv.slice(0, 200));
   return csv;
 }
 
+/**
+ * Cache global para controle de numeração sequencial
+ * Mantém estado entre diferentes execuções da função
+ */
 let cache = {
-  dataCache: null,
-  contador: 0,
-  ultimoTimestamp: 0
+  dataCache: null,        // Data atual armazenada no cache
+  contador: 0,           // Contador sequencial global
+  ultimoTimestamp: 0     // Timestamp da última atualização do cache
 };
 
-const CACHE_DURACAO_MS = 6 * 60 * 60 * 1000; // 6 horas
+// Duração do cache: 6 horas em milissegundos
+const CACHE_DURACAO_MS = 6 * 60 * 60 * 1000;
 
+/**
+ * CORREÇÃO: Função para ler a célula C1 da planilha (primeira linha, terceira coluna)
+ * Lê especificamente a primeira linha e terceira coluna conforme especificado
+ */
 function lerCelulaC1(csv) {
-  if (!csv) return '';
+  if (!csv) {
+    console.log('CSV vazio ou inválido');
+    return '';
+  }
+  
   const linhas = csv.split('\n');
-  if (linhas.length < 1) return '';
-  const colunas = linhas[0].split(',');
-  if (colunas.length < 3) return '';
-  return colunas[2].trim();
+  console.log(`Total de linhas no CSV: ${linhas.length}`);
+  
+  // Verificar se existe a primeira linha (índice 0)
+  if (linhas.length < 1) {
+    console.log('CSV não possui primeira linha');
+    return '';
+  }
+  
+  // Pegar a primeira linha (índice 0)
+  const primeiraLinha = linhas[0];
+  const colunas = primeiraLinha.split(',');
+  console.log(`Colunas na primeira linha: ${colunas.length}`);
+  
+  // Verificar se existe a coluna C (índice 2)
+  if (colunas.length < 3) {
+    console.log('Primeira linha não possui coluna C');
+    return '';
+  }
+  
+  const valorC1 = colunas[2].trim();
+  console.log(`Valor encontrado na célula C1: "${valorC1}"`);
+  return valorC1;
 }
 
+/**
+ * Função para validar se uma string está no formato de data AAAA-MM-DD
+ * Verifica tanto o formato quanto se é uma data válida
+ */
 function dataValida(dataStr) {
+  // Verificar formato AAAA-MM-DD
   const regex = /^\d{4}-\d{2}-\d{2}$/;
-  if (!regex.test(dataStr)) return false;
+  if (!regex.test(dataStr)) {
+    console.log(`Formato de data inválido: "${dataStr}"`);
+    return false;
+  }
+  
+  // Verificar se é uma data válida
   const d = new Date(dataStr);
-  return d instanceof Date && !isNaN(d);
+  const isValidDate = d instanceof Date && !isNaN(d);
+  
+  if (!isValidDate) {
+    console.log(`Data inválida: "${dataStr}"`);
+    return false;
+  }
+  
+  console.log(`Data válida: "${dataStr}"`);
+  return true;
 }
 
+/**
+ * CORREÇÃO: Função principal para gerar número sequencial do pedido
+ * Implementa lógica de cache de 6 horas e verificação de data na célula C1
+ */
 async function gerarNumeroPedido(csv) {
   const agora = Date.now();
-
-  if (cache.dataCache && (agora - cache.ultimoTimestamp) < CACHE_DURACAO_MS) {
+  console.log('=== INÍCIO GERAÇÃO NÚMERO PEDIDO ===');
+  console.log(`Timestamp atual: ${agora}`);
+  console.log(`Cache atual - Data: ${cache.dataCache}, Contador: ${cache.contador}, Último timestamp: ${cache.ultimoTimestamp}`);
+  
+  // VERIFICAÇÃO 1: Cache ainda válido (menos de 6 horas)?
+  const cacheValido = cache.dataCache && (agora - cache.ultimoTimestamp) < CACHE_DURACAO_MS;
+  console.log(`Cache válido (< 6h): ${cacheValido}`);
+  
+  if (cacheValido) {
+    // Cache ainda válido, apenas incrementar contador
     cache.contador++;
-    return cache.contador - 1;
+    const numeroAtual = cache.contador;
+    console.log(`Usando cache válido. Novo número: ${numeroAtual}`);
+    console.log('=== FIM GERAÇÃO NÚMERO PEDIDO ===');
+    return numeroAtual;
   }
-
+  
+  // VERIFICAÇÃO 2: Cache expirado ou inexistente, verificar célula C1
+  console.log('Cache expirado ou inexistente. Verificando célula C1...');
   const valorC1 = lerCelulaC1(csv);
-
+  
+  // VERIFICAÇÃO 3: Valor da célula C1 é uma data válida?
   if (dataValida(valorC1)) {
+    console.log(`Data válida encontrada na C1: ${valorC1}`);
+    
+    // VERIFICAÇÃO 4: É a mesma data do cache anterior?
     if (valorC1 === cache.dataCache) {
+      // Mesma data, continuar contagem
       cache.contador++;
+      console.log(`Mesma data do cache. Continuando contagem: ${cache.contador}`);
     } else {
-      cache.contador = 0;
+      // Data diferente, zerar contador
+      cache.contador = 1; // CORREÇÃO: Começar em 1, não 0
       cache.dataCache = valorC1;
+      console.log(`Data diferente. Zerando contador. Nova data: ${valorC1}, Contador: ${cache.contador}`);
     }
   } else {
-    cache.contador = 0;
+    // Valor inválido na C1, zerar tudo
+    console.log(`Valor inválido na C1: "${valorC1}". Zerando cache.`);
+    cache.contador = 1; // CORREÇÃO: Começar em 1, não 0
     cache.dataCache = null;
   }
-
+  
+  // Atualizar timestamp do cache
   cache.ultimoTimestamp = agora;
-  return cache.contador;
+  
+  const numeroFinal = cache.contador;
+  console.log(`Número final do pedido: ${numeroFinal}`);
+  console.log(`Cache atualizado - Data: ${cache.dataCache}, Contador: ${cache.contador}, Timestamp: ${cache.ultimoTimestamp}`);
+  console.log('=== FIM GERAÇÃO NÚMERO PEDIDO ===');
+  
+  return numeroFinal;
 }
 
-// Exemplo de função que processa o pedido:
-async function processarPedido() {
-  const csv = await buscarCsvDaPlanilha();
-  console.log('CSV total:', csv);
-  const numeroPedido = await gerarNumeroPedido(csv);
-  console.log('Número do pedido:', numeroPedido);
-  // resto do processamento
-}
-
-// Função para enviar ao Telegram COM RETRY
+/**
+ * Função para enviar mensagem ao Telegram com sistema de retry
+ * Implementa múltiplas tentativas com delays progressivos
+ */
 async function enviarParaTelegramComRetry(texto, token, chatId, maxTentativas = 3) {
   const url = `https://api.telegram.org/bot${token}/sendMessage`;
   
@@ -254,7 +343,9 @@ async function enviarParaTelegramComRetry(texto, token, chatId, maxTentativas = 
   return false;
 }
 
-// Função auxiliar para aguardar
+/**
+ * Função auxiliar para aguardar um tempo específico
+ */
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
