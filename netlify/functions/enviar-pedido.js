@@ -162,6 +162,15 @@ async function enviarParaTelegramComRetry(texto, token, chatId, maxTentativas = 
 
       if (response.ok && data.ok) {
         console.log(`✅ Mensagem enviada com sucesso na tentativa ${tentativa}`);
+        // Chama o contador antes de retornar
+  await fetch(`${process.env.URL_BASE}/.netlify/functions/update-contador`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-auth-key": process.env.COUNTER_AUTH_KEY,
+    },
+    body: JSON.stringify({ musica: dados.musica }), // precisa ter o nome da música aqui disponível
+  });
         return true;
       } else {
         console.error(`❌ Erro na tentativa ${tentativa}:`, data);
