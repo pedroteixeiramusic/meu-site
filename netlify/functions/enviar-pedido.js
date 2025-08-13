@@ -34,8 +34,12 @@ exports.handler = async (event, context) => {
     // Parse dos dados recebidos do frontend
     const { nome, telefone, musica, gorjeta, outroValor, mensagem, consentimento } = JSON.parse(event.body);
     
+    // Log de início do processamento
+    console.log(`[enviar-pedido] Iniciando processamento do pedido para: ${nome} - ${musica}`);
+    
     // Validações básicas
     if (!nome || !musica) {
+      console.error('[enviar-pedido] Erro: Nome e música são obrigatórios');
       return {
         statusCode: 400,
         headers: {
@@ -64,6 +68,7 @@ exports.handler = async (event, context) => {
 
     // Gerar número do pedido (lógica movida do frontend)
     const numeroPedido = await gerarNumeroPedido();
+    console.log(`[enviar-pedido] Número do pedido gerado: ${numeroPedido}`);
 
     // Formatação da mensagem do Telegram (movida do frontend)
     let textoTelegram = `🎶 *Novo Pedido de Música Nº${numeroPedido}* 🎶\n👤 ${nome}`;
@@ -85,13 +90,29 @@ exports.handler = async (event, context) => {
     }
 
     // Enviar para Telegram com RETRY
+    console.log('[enviar-pedido] Enviando mensagem para o Telegram...');
     const telegramSuccess = await enviarParaTelegramComRetry(textoTelegram, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID);
     
     if (!telegramSuccess) {
+      console.error('[enviar-pedido] Falha ao enviar para o Telegram após múltiplas tentativas');
       throw new Error('Falha ao enviar mensagem para o Telegram após múltiplas tentativas');
     }
 
+    // ========================================================================
+    // CHAMADA PARA UPDATE-CONTADOR (CORRIGIDA)
+    // ========================================================================
+    // Chama a função de atualização do contador de forma assíncrona
+    // Não aguarda o resultado para não atrasar a resposta ao usuário
+    console.log(`[enviar-pedido] Iniciando chamada para update-contador com música: ${musica}`);
+    
+    // Chamada assíncrona (fire-and-forget) para não bloquear a resposta
+    updateContadorAsync(musica).catch(error => {
+      // Log do erro mas não impede a resposta ao usuário
+      console.error('[enviar-pedido] Erro ao chamar update-contador:', error);
+    });
+
     // Resposta para o frontend (sem dados sensíveis)
+    console.log('[enviar-pedido] Pedido processado com sucesso, enviando resposta ao frontend');
     return {
       statusCode: 200,
       headers: {
@@ -109,7 +130,7 @@ exports.handler = async (event, context) => {
     };
 
   } catch (error) {
-    console.error('❌ Erro no envio do pedido:', error);
+    console.error('❌ [enviar-pedido] Erro no envio do pedido:', error);
     
     return {
       statusCode: 500,
@@ -126,6 +147,42 @@ exports.handler = async (event, context) => {
   }
 };
 
+// ========================================================================
+// FUNÇÃO PARA CHAMAR UPDATE-CONTADOR DE FORMA ASSÍNCRONA
+// ========================================================================
+async function updateContadorAsync(musica) {
+  try {
+    console.log(`[enviar-pedido] Chamando update-contador para música: ${musica}`);
+    
+    // Monta a URL da função update-contador
+    const updateUrl = `${process.env.URL_BASE}/.netlify/functions/update-contador`;
+    
+    const response = await fetch(updateUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-auth-key": process.env.COUNTER_AUTH_KEY, // Corrigido: header correto
+      },
+      body: JSON.stringify({ musica: musica }), // Corrigido: variável correta
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log(`✅ [enviar-pedido] Update-contador executado com sucesso:`, result);
+    } else {
+      const errorText = await response.text();
+      console.error(`❌ [enviar-pedido] Erro na resposta do update-contador (${response.status}):`, errorText);
+    }
+  } catch (error) {
+    console.error('❌ [enviar-pedido] Erro ao chamar update-contador:', error);
+    // Não relança o erro para não afetar a resposta principal
+  }
+}
+
+// ========================================================================
+// FUNÇÕES AUXILIARES (MANTIDAS COMO ESTAVAM)
+// ========================================================================
+
 let contador = 0;
 let dataAtual = new Date().toISOString().slice(0, 10);
 
@@ -138,13 +195,13 @@ async function gerarNumeroPedido() {
   return contador++;  // retorna o número atual e incrementa para o próximo
 }
 
-// Função para enviar ao Telegram COM RETRY
+// Função para enviar ao Telegram COM RETRY (LIMPEZA: removida chamada incorreta)
 async function enviarParaTelegramComRetry(texto, token, chatId, maxTentativas = 3) {
   const url = `https://api.telegram.org/bot${token}/sendMessage`;
   
   for (let tentativa = 1; tentativa <= maxTentativas; tentativa++) {
     try {
-      console.log(`🔄 Tentativa ${tentativa}/${maxTentativas} de envio ao Telegram`);
+      console.log(`🔄 [enviar-pedido] Tentativa ${tentativa}/${maxTentativas} de envio ao Telegram`);
       
       const response = await fetch(url, {
         method: 'POST',
@@ -161,44 +218,35 @@ async function enviarParaTelegramComRetry(texto, token, chatId, maxTentativas = 
       const data = await response.json();
 
       if (response.ok && data.ok) {
-        console.log(`✅ Mensagem enviada com sucesso na tentativa ${tentativa}`);
-        // Chama o contador antes de retornar
-  await fetch(`${process.env.URL_BASE}/.netlify/functions/update-contador`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-auth-key": process.env.COUNTER_AUTH_KEY,
-    },
-    body: JSON.stringify({ musica: dados.musica }), // precisa ter o nome da música aqui disponível
-  });
-        return true;
+        console.log(`✅ [enviar-pedido] Mensagem enviada com sucesso na tentativa ${tentativa}`);
+        return true; // Removida a chamada incorreta para update-contador daqui
       } else {
-        console.error(`❌ Erro na tentativa ${tentativa}:`, data);
+        console.error(`❌ [enviar-pedido] Erro na tentativa ${tentativa}:`, data);
         
         // Se for erro de rate limit, aguardar mais tempo
         if (response.status === 429) {
           const retryAfter = data.parameters?.retry_after || 1;
-          console.log(`⏳ Rate limit detectado. Aguardando ${retryAfter} segundos...`);
+          console.log(`⏳ [enviar-pedido] Rate limit detectado. Aguardando ${retryAfter} segundos...`);
           await sleep(retryAfter * 1000);
         } else if (tentativa < maxTentativas) {
           // Para outros erros, aguardar tempo progressivo
           const delayMs = tentativa * 1000; // 1s, 2s, 3s...
-          console.log(`⏳ Aguardando ${delayMs}ms antes da próxima tentativa...`);
+          console.log(`⏳ [enviar-pedido] Aguardando ${delayMs}ms antes da próxima tentativa...`);
           await sleep(delayMs);
         }
       }
     } catch (error) {
-      console.error(`❌ Erro de rede na tentativa ${tentativa}:`, error);
+      console.error(`❌ [enviar-pedido] Erro de rede na tentativa ${tentativa}:`, error);
       
       if (tentativa < maxTentativas) {
         const delayMs = tentativa * 2000; // 2s, 4s, 6s...
-        console.log(`⏳ Aguardando ${delayMs}ms antes da próxima tentativa...`);
+        console.log(`⏳ [enviar-pedido] Aguardando ${delayMs}ms antes da próxima tentativa...`);
         await sleep(delayMs);
       }
     }
   }
 
-  console.error(`❌ Falha ao enviar mensagem após ${maxTentativas} tentativas`);
+  console.error(`❌ [enviar-pedido] Falha ao enviar mensagem após ${maxTentativas} tentativas`);
   return false;
 }
 
@@ -206,3 +254,4 @@ async function enviarParaTelegramComRetry(texto, token, chatId, maxTentativas = 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
