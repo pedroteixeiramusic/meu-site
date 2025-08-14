@@ -1,5 +1,5 @@
 // /.netlify/functions/enviar-pedido.js
-// Nova implementação com toda a lógica movida do frontend
+// Versão que usa Google Apps Script para o contador
 
 exports.handler = async (event, context) => {
   // Handler para OPTIONS (CORS)
@@ -99,16 +99,14 @@ exports.handler = async (event, context) => {
     }
 
     // ========================================================================
-    // CHAMADA PARA UPDATE-CONTADOR (CORRIGIDA)
+    // CHAMADA PARA GOOGLE APPS SCRIPT (NOVA IMPLEMENTAÇÃO)
     // ========================================================================
-    // Chama a função de atualização do contador de forma assíncrona
-    // Não aguarda o resultado para não atrasar a resposta ao usuário
-    console.log(`[enviar-pedido] Iniciando chamada para update-contador com música: ${musica}`);
+    console.log(`[enviar-pedido] Iniciando chamada para Google Apps Script com música: ${musica}`);
     
-    // Chamada assíncrona (fire-and-forget) para não bloquear a resposta
-    updateContadorAsync(musica).catch(error => {
+    // Chamada assíncrona para o Google Apps Script
+    updateContadorViaAppsScript(musica).catch(error => {
       // Log do erro mas não impede a resposta ao usuário
-      console.error('[enviar-pedido] Erro ao chamar update-contador:', error);
+      console.error('[enviar-pedido] Erro ao chamar Google Apps Script:', error);
     });
 
     // Resposta para o frontend (sem dados sensíveis)
@@ -148,33 +146,40 @@ exports.handler = async (event, context) => {
 };
 
 // ========================================================================
-// FUNÇÃO PARA CHAMAR UPDATE-CONTADOR DE FORMA ASSÍNCRONA
+// FUNÇÃO PARA CHAMAR GOOGLE APPS SCRIPT
 // ========================================================================
-async function updateContadorAsync(musica) {
+async function updateContadorViaAppsScript(musica) {
   try {
-    console.log(`[enviar-pedido] Chamando update-contador para música: ${musica}`);
+    console.log(`[enviar-pedido] Chamando Google Apps Script para música: ${musica}`);
     
-    // Monta a URL da função update-contador
-    const updateUrl = `${process.env.URL_BASE}/.netlify/functions/update-contador`;
+    // URL do Google Apps Script (configure na variável de ambiente)
+    const appsScriptUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
     
-    const response = await fetch(updateUrl, {
+    if (!appsScriptUrl) {
+      console.error('[enviar-pedido] URL do Google Apps Script não configurada');
+      return;
+    }
+
+    const response = await fetch(appsScriptUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-auth-key": process.env.COUNTER_AUTH_KEY, // Corrigido: header correto
       },
-      body: JSON.stringify({ musica: musica }), // Corrigido: variável correta
+      body: JSON.stringify({ 
+        musica: musica,
+        auth_key: process.env.COUNTER_AUTH_KEY
+      }),
     });
 
     if (response.ok) {
       const result = await response.json();
-      console.log(`✅ [enviar-pedido] Update-contador executado com sucesso:`, result);
+      console.log(`✅ [enviar-pedido] Google Apps Script executado com sucesso:`, result);
     } else {
       const errorText = await response.text();
-      console.error(`❌ [enviar-pedido] Erro na resposta do update-contador (${response.status}):`, errorText);
+      console.error(`❌ [enviar-pedido] Erro na resposta do Google Apps Script (${response.status}):`, errorText);
     }
   } catch (error) {
-    console.error('❌ [enviar-pedido] Erro ao chamar update-contador:', error);
+    console.error('❌ [enviar-pedido] Erro ao chamar Google Apps Script:', error);
     // Não relança o erro para não afetar a resposta principal
   }
 }
@@ -192,10 +197,10 @@ async function gerarNumeroPedido() {
     contador = 0;
     dataAtual = hoje;
   }
-  return contador++;  // retorna o número atual e incrementa para o próximo
+  return contador++;
 }
 
-// Função para enviar ao Telegram COM RETRY (LIMPEZA: removida chamada incorreta)
+// Função para enviar ao Telegram COM RETRY
 async function enviarParaTelegramComRetry(texto, token, chatId, maxTentativas = 3) {
   const url = `https://api.telegram.org/bot${token}/sendMessage`;
   
@@ -219,18 +224,16 @@ async function enviarParaTelegramComRetry(texto, token, chatId, maxTentativas = 
 
       if (response.ok && data.ok) {
         console.log(`✅ [enviar-pedido] Mensagem enviada com sucesso na tentativa ${tentativa}`);
-        return true; // Removida a chamada incorreta para update-contador daqui
+        return true;
       } else {
         console.error(`❌ [enviar-pedido] Erro na tentativa ${tentativa}:`, data);
         
-        // Se for erro de rate limit, aguardar mais tempo
         if (response.status === 429) {
           const retryAfter = data.parameters?.retry_after || 1;
           console.log(`⏳ [enviar-pedido] Rate limit detectado. Aguardando ${retryAfter} segundos...`);
           await sleep(retryAfter * 1000);
         } else if (tentativa < maxTentativas) {
-          // Para outros erros, aguardar tempo progressivo
-          const delayMs = tentativa * 1000; // 1s, 2s, 3s...
+          const delayMs = tentativa * 1000;
           console.log(`⏳ [enviar-pedido] Aguardando ${delayMs}ms antes da próxima tentativa...`);
           await sleep(delayMs);
         }
@@ -239,7 +242,7 @@ async function enviarParaTelegramComRetry(texto, token, chatId, maxTentativas = 
       console.error(`❌ [enviar-pedido] Erro de rede na tentativa ${tentativa}:`, error);
       
       if (tentativa < maxTentativas) {
-        const delayMs = tentativa * 2000; // 2s, 4s, 6s...
+        const delayMs = tentativa * 2000;
         console.log(`⏳ [enviar-pedido] Aguardando ${delayMs}ms antes da próxima tentativa...`);
         await sleep(delayMs);
       }
