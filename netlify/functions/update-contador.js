@@ -1,8 +1,9 @@
 // /.netlify/functions/update-contador.js
+// Versão CommonJS compatível com Netlify
 
-import { google } from "googleapis";
+const { google } = require("googleapis");
 
-export async function handler(event) {
+exports.handler = async (event) => {
   // Log de início da função
   console.log('[update-contador] Função iniciada');
   console.log('[update-contador] Método HTTP:', event.httpMethod);
@@ -174,5 +175,5 @@ export async function handler(event) {
       }),
     };
   }
-}
+};
 
