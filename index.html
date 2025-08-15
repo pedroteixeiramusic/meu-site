@@ -1625,7 +1625,7 @@
       console.log('🔄 Iniciando carregamento de categorias...');
       
       try {
-        const response = await fetch('/.netlify/functions/get-categorias');
+        const response = await fetch('/.netlify/functions/get-pastas');
         console.log('📡 Resposta recebida:', response.status);
         
         if (!response.ok) {
@@ -1722,7 +1722,7 @@ async function mostrarMusicas(categoria) {
     listaMusicas.innerHTML = '<li style="text-align: center; padding: 20px;">Carregando músicas...</li>';
     
     // Fazer requisição para get-lista
-    const response = await fetch(`/.netlify/functions/get-lista?categoria=${encodeURIComponent(categoria)}`);
+    const response = await fetch(`/.netlify/functions/get-pasta?categoria=${encodeURIComponent(categoria)}`);
     console.log('📡 Resposta get-lista:', response.status);
     
     if (!response.ok) {
@@ -1887,7 +1887,7 @@ async function mostrarMusicas(categoria) {
       
       try {
         // Enviar para o backend (SIMPLIFICADO)
-        const response = await fetch("/.netlify/functions/enviar-pedido", {
+        const response = await fetch("/.netlify/functions/banner", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -2122,6 +2122,7 @@ document.addEventListener("keydown", function(event) {
 </script>
 </body>
 </html>
+
 
 
 
