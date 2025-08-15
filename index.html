@@ -1357,6 +1357,38 @@
     <button class="btn-principal" onclick="mostrarCategorias()">Voltar para categorias</button>
   </div>
 
+  <!-- Popup elegante -->
+<div id="popup-aviso" style="
+  display:none; 
+  position:fixed; 
+  top:50%; left:50%; 
+  transform:translate(-50%, -50%);
+  background:#f9f9f9; 
+  padding:20px 25px; 
+  border-radius:12px; 
+  box-shadow:0 6px 18px rgba(0,0,0,0.25); 
+  z-index:9999; 
+  max-width:320px; 
+  text-align:center;
+  font-family:Arial, sans-serif;
+  color:#222;
+">
+  <p style="margin:0 0 15px; font-size:14px;">
+    Seus dados (nome e telefone) ficarão salvos apenas no meu navegador para agilizar futuros pedidos.
+  </p>
+  <button onclick="fecharPopup()" style="
+    padding:8px 16px; 
+    border:none; 
+    border-radius:6px; 
+    background:#222; 
+    color:#fff; 
+    cursor:pointer;
+    font-size:14px;
+  ">
+    Entendi
+  </button>
+</div>
+
   <div id="formularioPedido" style="display:none; text-align:left;" class="container">
     <h2>Pedido</h2>
     <div class="divider"></div>
@@ -2030,9 +2062,29 @@ async function mostrarMusicas(categoria) {
         botaoVoltarCategorias.addEventListener('click', mostrarCategorias);
       }
     });
+    document.addEventListener("DOMContentLoaded", function() {
+  // Mostrar popup apenas na página #pedido
+  if (window.location.hash === "#pedido") {
+    const nomeSalvo = localStorage.getItem("nome");
+    const telefoneSalvo = localStorage.getItem("telefone");
+    const avisoVisto = localStorage.getItem("avisoVisto");
+
+    if (!nomeSalvo && !telefoneSalvo && !avisoVisto) {
+      document.getElementById("popup-aviso").style.display = "block";
+    }
+  }
+});
+
+// Fechar popup e marcar como visto
+function fecharPopup() {
+  localStorage.setItem("avisoVisto", "sim");
+  document.getElementById("popup-aviso").style.display = "none";
+}
+
 </script>
 </body>
 </html>
+
 
 
 
