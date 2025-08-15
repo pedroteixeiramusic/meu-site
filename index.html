@@ -1357,30 +1357,59 @@
     <button class="btn-principal" onclick="mostrarCategorias()">Voltar para categorias</button>
   </div>
 
-  <div id="popup-aviso" style="
+  <!-- Overlay -->
+<div id="popup-overlay" style="
+  display:none;
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(18, 18, 18, 0.85); /* usando a cor de fundo do site com transparência */
+  z-index:9998;
+  backdrop-filter: blur(4px);
+"></div>
+
+<!-- Popup harmonizado -->
+<div id="popup-aviso" style="
   display:none; 
   position:fixed; 
   top:50%; left:50%; 
   transform:translate(-50%, -50%);
-  background:#fff; 
-  padding:15px 20px; 
-  border:1px solid #ccc;
+  background: var(--color-background, #121212); 
+  padding: 25px 30px; 
+  border: var(--border-accent, 1px solid #BF9B30);
+  border-radius: 8px;
+  box-shadow: var(--shadow-soft, 0 4px 12px rgba(0, 0, 0, 0.5));
   z-index:9999;
-  max-width:300px; 
+  max-width: 400px; 
+  width: 90%;
   text-align:center;
-  font-family:Arial, sans-serif;
-  color:#000;
+  font-family: 'Lato', sans-serif;
+  color: var(--color-text-primary, #F5F5F5);
 ">
-  <p style="margin:0 0 10px; font-size:14px;">
+  <p style="
+    margin: 0 0 20px; 
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--color-text-secondary, #D4C7B0);
+  ">
     Seus dados (nome e telefone) ficarão salvos apenas no seu navegador para agilizar futuros pedidos.
   </p>
   <button onclick="fecharPopup()" style="
-    padding:6px 12px; 
-    border:1px solid #000; 
-    background:#fff; 
-    cursor:pointer;
-    font-size:14px;
-  ">
+    padding: 12px 24px; 
+    border: var(--border-accent, 1px solid #BF9B30); 
+    background: var(--color-primary, #5D1725); 
+    color: var(--color-text-primary, #F5F5F5);
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'Lato', sans-serif;
+    font-weight: 500;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-soft, 0 4px 12px rgba(0, 0, 0, 0.5));
+  " 
+  onmouseover="this.style.background='var(--color-accent, #BF9B30)'; this.style.color='var(--color-secondary, #3A2618)'; this.style.transform='translateY(-2px)'"
+  onmouseout="this.style.background='var(--color-primary, #5D1725)'; this.style.color='var(--color-text-primary, #F5F5F5)'; this.style.transform='translateY(0)'"
+  >
     Entendi
   </button>
 </div>
@@ -2059,28 +2088,41 @@ async function mostrarMusicas(categoria) {
       }
     });
     document.addEventListener("DOMContentLoaded", function() {
-  // Verifica se estamos na página inicial
   if (window.location.pathname === "/" || window.location.pathname === "/index.html") {
     const nomeSalvo = localStorage.getItem("nome");
     const telefoneSalvo = localStorage.getItem("telefone");
     const avisoVisto = localStorage.getItem("avisoVisto");
 
-    // Mostrar popup apenas se não houver dados e não tiver sido visto
     if (!nomeSalvo && !telefoneSalvo && !avisoVisto) {
       document.getElementById("popup-aviso").style.display = "block";
+      document.getElementById("popup-overlay").style.display = "block";
     }
   }
 });
 
-// Fechar popup e marcar como visto
+// Fechar popup e overlay
 function fecharPopup() {
   localStorage.setItem("avisoVisto", "sim");
   document.getElementById("popup-aviso").style.display = "none";
+  document.getElementById("popup-overlay").style.display = "none";
 }
+
+// Fechar popup clicando no overlay
+document.getElementById("popup-overlay").addEventListener("click", function() {
+  fecharPopup();
+});
+
+// Fechar popup com tecla ESC
+document.addEventListener("keydown", function(event) {
+  if (event.key === "Escape") {
+    fecharPopup();
+  }
+});
 
 </script>
 </body>
 </html>
+
 
 
 
