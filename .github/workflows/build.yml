@@ -3,7 +3,7 @@ name: Minificar JS
 on:
   push:
     branches:
-      - main  # ou branch que você usa
+      - back-end  # ou branch que você usa
 
 jobs:
   build:
