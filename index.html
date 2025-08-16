@@ -1261,10 +1261,16 @@
   z-index: 9999;
 }
 
-#rodape p {
-  margin: 0;
-  line-height: 1.4;
-}
+/* Estilo minimalista, sem barra/listra */
+  #rodape {
+    color: var(--color-text-secondary);
+    text-align: center;
+    font-size: 12px;         /* fonte pequena */
+    line-height: 1.2;
+    margin-top: 16px;         /* pequeno respiro do conteúdo acima */
+    /* nada de border, background ou shadow pra não formar listra */
+  }
+  #rodape small { margin: 0; padding: 0; }
   </style>
 </head>
 <body>
@@ -2137,21 +2143,23 @@ document.addEventListener("keydown", function(event) {
     fecharPopup();
   }
 });
-const anoCriacao = 2025; // ano que o site foi criado
-  const anoAtual = new Date().getFullYear();
+document.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById('copyright');
+    if (!el) return;
 
-  const textoAno = (anoAtual === anoCriacao) 
-    ? anoCriacao 
-    : `${anoCriacao} - ${anoAtual}`;
+    const anoCriacao = 2025; // ajuste se precisar
+    const anoAtual = new Date().getFullYear();
+    const textoAno = (anoAtual === anoCriacao) ? `${anoCriacao}` : `${anoCriacao} - ${anoAtual}`;
 
-  document.getElementById('copyright').textContent =
-    `© ${textoAno} Pedro Teixeira. Todos os direitos reservados.`;
+    el.textContent = `© ${textoAno} Pedro Teixeira. Todos os direitos reservados.`;
+  });
 </script>
   <footer id="rodape">
-  <p id="copyright"></p>
+  <small id="copyright"></small>
 </footer>
 </body>
 </html>
+
 
 
 
