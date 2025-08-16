@@ -1,4 +1,5 @@
 <script>
+    // commit para disparar
     // Chaves PIX movidas para o backend por segurança
 
     // Variáveis globais
