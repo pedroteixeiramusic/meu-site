@@ -1,0 +1,28 @@
+name: Minificar JS
+
+on:
+  push:
+    branches:
+      - main  # ou branch que você usa
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checar o código
+        uses: actions/checkout@v3
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Minificar JS
+        run: npm run minify:js
+
+      - name: Listar arquivos gerados
+        run: ls -R dist
