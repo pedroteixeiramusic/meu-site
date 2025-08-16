@@ -1246,6 +1246,25 @@
         font-size: 1em;
       }
     }
+    #rodape {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: var(--color-secondary);
+  color: var(--color-text-secondary);
+  text-align: center;
+  font-size: 12px;
+  padding: 4px 0;
+  box-shadow: var(--shadow-soft);
+  border-top: var(--border-accent);
+  z-index: 9999;
+}
+
+#rodape p {
+  margin: 0;
+  line-height: 1.4;
+}
   </style>
 </head>
 <body>
@@ -2118,10 +2137,22 @@ document.addEventListener("keydown", function(event) {
     fecharPopup();
   }
 });
+const anoCriacao = 2025; // ano que o site foi criado
+  const anoAtual = new Date().getFullYear();
 
+  const textoAno = (anoAtual === anoCriacao) 
+    ? anoCriacao 
+    : `${anoCriacao} - ${anoAtual}`;
+
+  document.getElementById('copyright').textContent =
+    `© ${textoAno} Pedro Teixeira. Todos os direitos reservados.`;
 </script>
+  <footer id="rodape">
+  <p id="copyright"></p>
+</footer>
 </body>
 </html>
+
 
 
 
