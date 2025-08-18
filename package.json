@@ -2,21 +2,25 @@
   "name": "site-musica",
   "version": "1.0.0",
   "main": "index.js",
+  "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "minify:js": "terser src/app.js -o dist/app.min.js --compress drop_console=true --mangle",
     "minify:css": "cleancss -o dist/style.min.css src/style.css",
-  "minify:html": "html-minifier --collapse-whitespace --remove-comments --minify-css true --minify-js true -o dist/index.html src/index.html",
-  "build": "npm run minify:js && npm run minify:css && npm run minify:html",
-  "minify:js": "terser src/app.js -o dist/app.min.js --compress drop_console=true --mangle"
-}
+    "minify:html": "html-minifier --collapse-whitespace --remove-comments --minify-css true --minify-js true -o dist/index.html src/index.html",
+    "build": "npm run minify:js && npm run minify:css && npm run minify:html"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "node-fetch": "^2.7.0",
     "papaparse": "^5.4.1",
     "terser": "^5.20.0",
     "googleapis": "^128.0.0"
+  },
+  "devDependencies": {
+    "cleancss": "^5.3.0",
+    "html-minifier": "^4.0.0"
   }
 }
