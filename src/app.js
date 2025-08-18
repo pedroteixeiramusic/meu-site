@@ -202,7 +202,7 @@ async function mostrarMusicas(categoria) {
   }
 }
 
-    // FUNÇÃO CORRIGIDA: Exibir lista de músicas
+    // FUNÇÃO CORRIGIDA: Exibir lista de músicas (SEM onclick inline)
     function exibirMusicas(musicas) {
       console.log('📋 Exibindo músicas:', musicas);
       
@@ -212,13 +212,12 @@ async function mostrarMusicas(categoria) {
       musicas.forEach((musica, index) => {
         // Garantir que musica é uma string
         const nomeMusica = String(musica);
-        const nomeSeguro = nomeMusica.replace(/'/g, "\\'");
         
         const li = document.createElement('li');
         li.innerHTML = `
           <div class="musica-item">
             <span>${nomeMusica}</span>
-            <button class="btn-musica" onclick="selecionarMusica('${nomeSeguro}')">
+            <button class="btn-musica" data-musica="${nomeMusica}">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polygon points="5,3 19,12 5,21"></polygon>
               </svg>
@@ -226,6 +225,12 @@ async function mostrarMusicas(categoria) {
             </button>
           </div>
         `;
+        
+        // Adicionar event listener ao botão da música
+        const btnMusica = li.querySelector('.btn-musica');
+        btnMusica.addEventListener('click', () => {
+          selecionarMusica(nomeMusica);
+        });
         
         listaMusicas.appendChild(li);
         console.log(`✅ Música ${index + 1} adicionada:`, nomeMusica);
@@ -532,44 +537,167 @@ async function mostrarMusicas(categoria) {
         botaoVoltarCategorias.addEventListener('click', mostrarCategorias);
       }
     });
+
     document.addEventListener("DOMContentLoaded", function() {
-  if (window.location.pathname === "/" || window.location.pathname === "/index.html") {
-    const nomeSalvo = localStorage.getItem("nome");
-    const telefoneSalvo = localStorage.getItem("telefone");
-    const avisoVisto = localStorage.getItem("avisoVisto");
+      if (window.location.pathname === "/" || window.location.pathname === "/index.html") {
+        const nomeSalvo = localStorage.getItem("nome");
+        const telefoneSalvo = localStorage.getItem("telefone");
+        const avisoVisto = localStorage.getItem("avisoVisto");
 
-    if (!nomeSalvo && !telefoneSalvo && !avisoVisto) {
-      document.getElementById("popup-aviso").style.display = "block";
-      document.getElementById("popup-overlay").style.display = "block";
+        if (!nomeSalvo && !telefoneSalvo && !avisoVisto) {
+          document.getElementById("popup-aviso").style.display = "block";
+          document.getElementById("popup-overlay").style.display = "block";
+        }
+      }
+    });
+
+    // Fechar popup e overlay
+    function fecharPopup() {
+      localStorage.setItem("avisoVisto", "sim");
+      document.getElementById("popup-aviso").style.display = "none";
+      document.getElementById("popup-overlay").style.display = "none";
     }
-  }
-});
 
-// Fechar popup e overlay
-function fecharPopup() {
-  localStorage.setItem("avisoVisto", "sim");
-  document.getElementById("popup-aviso").style.display = "none";
-  document.getElementById("popup-overlay").style.display = "none";
-}
+    document.addEventListener('DOMContentLoaded', () => {
+        const el = document.getElementById('copyright');
+        if (!el) return;
 
-// Fechar popup clicando no overlay
-document.getElementById("popup-overlay").addEventListener("click", function() {
-  fecharPopup();
-});
+        const anoCriacao = 2025; // ajuste se precisar
+        const anoAtual = new Date().getFullYear();
+        const textoAno = (anoAtual === anoCriacao) ? `${anoCriacao}` : `${anoCriacao} - ${anoAtual}`;
 
-// Fechar popup com tecla ESC
-document.addEventListener("keydown", function(event) {
-  if (event.key === "Escape") {
-    fecharPopup();
-  }
-});
-document.addEventListener('DOMContentLoaded', () => {
-    const el = document.getElementById('copyright');
-    if (!el) return;
+        el.textContent = `© ${textoAno} Pedro Teixeira. Todos os direitos reservados.`;
+    });
 
-    const anoCriacao = 2025; // ajuste se precisar
-    const anoAtual = new Date().getFullYear();
-    const textoAno = (anoAtual === anoCriacao) ? `${anoCriacao}` : `${anoCriacao} - ${anoAtual}`;
+    // ===== EVENT LISTENERS CENTRALIZADOS =====
+    document.addEventListener('DOMContentLoaded', function() {
+      
+      // Botão fechar show não começou
+      const btnFecharShowNaoComecou = document.getElementById('btnFecharShowNaoComecou');
+      if (btnFecharShowNaoComecou) {
+        btnFecharShowNaoComecou.addEventListener('click', fecharShowNaoComecou);
+      }
 
-    el.textContent = `© ${textoAno} Pedro Teixeira. Todos os direitos reservados.`;
-  });
+      // Botão quinta alternativa
+      const btnQuintaAlternativa = document.getElementById('btnQuintaAlternativa');
+      if (btnQuintaAlternativa) {
+        btnQuintaAlternativa.addEventListener('click', mostrarPopupQuinta);
+      }
+
+      // Botão Instagram
+      const btnInstagram = document.getElementById('btnInstagram');
+      if (btnInstagram) {
+        btnInstagram.addEventListener('click', function() {
+          window.open('https://www.instagram.com/pedroteixeiramusic?igsh=NGx1dmo3cHc4YzMw&utm_source=qr');
+        });
+      }
+
+      // Botão pedir música
+      const btnPedirMusica = document.getElementById('btnPedirMusica');
+      if (btnPedirMusica) {
+        btnPedirMusica.addEventListener('click', mostrarCategorias);
+      }
+
+      // Input busca música
+      const buscaMusica = document.getElementById('buscaMusica');
+      if (buscaMusica) {
+        buscaMusica.addEventListener('input', filtrarMusicas);
+      }
+
+      // Botão voltar para categorias
+      const btnVoltarCategorias = document.getElementById('btnVoltarCategorias');
+      if (btnVoltarCategorias) {
+        btnVoltarCategorias.addEventListener('click', mostrarCategorias);
+      }
+
+      // Botão fechar popup aviso
+      const btnFecharPopup = document.getElementById('btnFecharPopup');
+      if (btnFecharPopup) {
+        btnFecharPopup.addEventListener('click', fecharPopup);
+        
+        // Adicionar efeitos de hover via JavaScript
+        btnFecharPopup.addEventListener('mouseover', function() {
+          this.style.background = 'var(--color-accent, #BF9B30)';
+          this.style.color = 'var(--color-secondary, #3A2618)';
+          this.style.transform = 'translateY(-2px)';
+        });
+        
+        btnFecharPopup.addEventListener('mouseout', function() {
+          this.style.background = 'var(--color-primary, #5D1725)';
+          this.style.color = 'var(--color-text-primary, #F5F5F5)';
+          this.style.transform = 'translateY(0)';
+        });
+      }
+
+      // Formulário de pedido
+      const formPedido = document.getElementById('formPedido');
+      if (formPedido) {
+        formPedido.addEventListener('submit', enviarPedido);
+      }
+
+      // Input telefone
+      const telefone = document.getElementById('telefone');
+      if (telefone) {
+        telefone.addEventListener('input', function() {
+          formatarTelefone(this);
+          verificarConsentimento();
+        });
+      }
+
+      // Select gorjeta
+      const gorjeta = document.getElementById('gorjeta');
+      if (gorjeta) {
+        gorjeta.addEventListener('change', atualizarGorjeta);
+      }
+
+      // Help icon gorjeta
+      const helpIconGorjeta = document.getElementById('helpIconGorjeta');
+      if (helpIconGorjeta) {
+        helpIconGorjeta.addEventListener('click', mostrarPopupGorjeta);
+      }
+
+      // Botão copiar PIX
+      const btnCopiarPix = document.getElementById('btnCopiarPix');
+      if (btnCopiarPix) {
+        btnCopiarPix.addEventListener('click', copiarPixConfirmacao);
+      }
+
+      // Botão voltar início
+      const btnVoltarInicio = document.getElementById('btnVoltarInicio');
+      if (btnVoltarInicio) {
+        btnVoltarInicio.addEventListener('click', mostrarPopupDica);
+      }
+
+      // Botão fechar popup dica
+      const btnFecharPopupDica = document.getElementById('btnFecharPopupDica');
+      if (btnFecharPopupDica) {
+        btnFecharPopupDica.addEventListener('click', fecharPopupDica);
+      }
+
+      // Botão fechar popup quinta
+      const btnFecharPopupQuinta = document.getElementById('btnFecharPopupQuinta');
+      if (btnFecharPopupQuinta) {
+        btnFecharPopupQuinta.addEventListener('click', fecharPopupQuinta);
+      }
+
+      // Botão fechar popup gorjeta
+      const btnFecharPopupGorjeta = document.getElementById('btnFecharPopupGorjeta');
+      if (btnFecharPopupGorjeta) {
+        btnFecharPopupGorjeta.addEventListener('click', fecharPopupGorjeta);
+      }
+
+      // Fechar popup clicando no overlay
+      const popupOverlay = document.getElementById("popup-overlay");
+      if (popupOverlay) {
+        popupOverlay.addEventListener("click", fecharPopup);
+      }
+
+      // Fechar popup com tecla ESC
+      document.addEventListener("keydown", function(event) {
+        if (event.key === "Escape") {
+          fecharPopup();
+        }
+      });
+
+    });
+
