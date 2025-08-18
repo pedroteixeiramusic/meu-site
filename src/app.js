@@ -1,4 +1,3 @@
-<script>
     // commit para disparar
     // Chaves PIX movidas para o backend por segurança
 
@@ -574,4 +573,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
     el.textContent = `© ${textoAno} Pedro Teixeira. Todos os direitos reservados.`;
   });
-</script>
