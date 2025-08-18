@@ -43,7 +43,7 @@
         Confira os locais dos próximos shows em 
         <a href="https://www.instagram.com/pedroteixeiramusic?igsh=NGx1dmo3cHc4YzMw&utm_source=qr" class="show-nao-comecou-instagram" target="_blank">@pedroteixeiramusic</a>
       </div>
-      <button class="btn-show-nao-comecou-fechar" onclick="fecharShowNaoComecou()">Entendi!</button>
+      <button id="btnFecharShowNaoComecou" class="btn-show-nao-comecou-fechar">Entendi!</button>
     </div>
   </div>
 
@@ -84,7 +84,7 @@
     </div>
     
     <p class="mensagem">Seja bem-vindo(a)! Você está prestes a viver um momento único — feito ao vivo, com violão, voz e presença. Cada nota é tocada com intenção, criando uma atmosfera intimista, pensada para quem está aqui e agora. Quer deixar sua marca nesse instante? É só navegar pelo repertório e escolher a próxima canção. A música começa comigo, mas ganha sentido com você. 🎶</p>
-    <button class="btn-quinta-alternativa" onclick="mostrarPopupQuinta()">
+    <button id="btnQuintaAlternativa" class="btn-quinta-alternativa">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="10"></circle>
         <path d="M9,9h6v6H9z"></path>
@@ -92,7 +92,7 @@
       </svg>
       O que é a Quinta Alternativa?
     </button>
-    <button class="btn-instagram" onclick="window.open('https://www.instagram.com/pedroteixeiramusic?igsh=NGx1dmo3cHc4YzMw&utm_source=qr')">
+    <button id="btnInstagram" class="btn-instagram">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
         <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
@@ -101,7 +101,7 @@
       <a href="https://www.instagram.com/pedroteixeiramusic?igsh=NGx1dmo3cHc4YzMw&utm_source=qr" target="_blank">@pedroteixeiramusic</a>
     </button><br>
     <!-- ALTERAÇÃO 1: Botão "Pedir música" agora começa desabilitado -->
-    <button id="btnPedirMusica" class="btn-principal" onclick="mostrarCategorias()" disabled>Pedir música</button>
+    <button id="btnPedirMusica" class="btn-principal" disabled>Pedir música</button>
   </div>
 
   <div id="listaCategorias" style="display:none;" class="container">
@@ -113,9 +113,9 @@
   <div id="listaMusicas" style="display:none;" class="container">
     <h2>Músicas</h2>
     <div class="divider"></div>
-    <input type="text" id="buscaMusica" placeholder="Buscar música..." oninput="filtrarMusicas()">
+    <input type="text" id="buscaMusica" placeholder="Buscar música...">
     <ul id="musicas"></ul>
-    <button class="btn-principal" onclick="mostrarCategorias()">Voltar para categorias</button>
+    <button id="btnVoltarCategorias" class="btn-principal">Voltar para categorias</button>
   </div>
 
   <!-- Overlay -->
@@ -155,7 +155,7 @@
   ">
     Seus dados (nome e telefone) ficarão salvos apenas no seu navegador para agilizar futuros pedidos.
   </p>
-  <button onclick="fecharPopup()" style="
+  <button id="btnFecharPopup" style="
     padding: 12px 24px; 
     border: var(--border-accent, 1px solid #BF9B30); 
     background: var(--color-primary, #5D1725); 
@@ -167,10 +167,7 @@
     border-radius: 4px;
     transition: all 0.3s ease;
     box-shadow: var(--shadow-soft, 0 4px 12px rgba(0, 0, 0, 0.5));
-  " 
-  onmouseover="this.style.background='var(--color-accent, #BF9B30)'; this.style.color='var(--color-secondary, #3A2618)'; this.style.transform='translateY(-2px)'"
-  onmouseout="this.style.background='var(--color-primary, #5D1725)'; this.style.color='var(--color-text-primary, #F5F5F5)'; this.style.transform='translateY(0)'"
-  >
+  ">
     Entendi
   </button>
 </div>
@@ -178,7 +175,7 @@
   <div id="formularioPedido" style="display:none; text-align:left;" class="container">
     <h2>Pedido</h2>
     <div class="divider"></div>
-    <form onsubmit="enviarPedido(event)">
+    <form id="formPedido">
       <div class="form-row">
         <div class="form-field">
           <label>Nome:</label>
@@ -188,7 +185,7 @@
         <div class="form-field">
           <label>Telefone:</label>
           <!-- Alteração 4: Limitar a máximo de 11 dígitos numéricos, não obrigatório -->
-          <input type="tel" id="telefone" placeholder="(11) 99999-9999" maxlength="15" oninput="formatarTelefone(this); verificarConsentimento();">
+          <input type="tel" id="telefone" placeholder="(11) 99999-9999" maxlength="15">
         </div>
       </div>
 
@@ -204,9 +201,9 @@
       <input type="text" id="musica" readonly>
 
       <label>Gorjeta (opcional): 
-        <span class="help-icon" onclick="mostrarPopupGorjeta()">?</span>
+        <span id="helpIconGorjeta" class="help-icon">?</span>
       </label>
-      <select id="gorjeta" onchange="atualizarGorjeta()">
+      <select id="gorjeta">
         <option value="">Nenhuma gorjeta agora</option>
         <option value="3">R$3</option>
         <option value="7">R$7</option>
@@ -249,10 +246,10 @@
       <p><strong>Código PIX:</strong></p>
       <textarea id="chavePix" readonly style="height: 80px; font-size: 0.9em;"></textarea>
       
-      <button class="btn-copiar-pix" onclick="copiarPixConfirmacao()">Copiar PIX</button>
+      <button id="btnCopiarPix" class="btn-copiar-pix">Copiar PIX</button>
     </div>
     
-    <button id="btnVoltarInicio" class="btn-principal" onclick="mostrarPopupDica()">Página inicial</button>
+    <button id="btnVoltarInicio" class="btn-principal">Página inicial</button>
 
   </div>
 
@@ -272,7 +269,7 @@
         <p>Me marca no Instagram: <strong><a href="https://www.instagram.com/pedroteixeiramusic?igsh=NGx1dmo3cHc4YzMw&utm_source=qr" target="_blank">@pedroteixeiramusic</a></strong> 💛</p>
       </div>
       
-      <button class="btn-popup-fechar" onclick="fecharPopupDica()">Entendi!</button>
+      <button id="btnFecharPopupDica" class="btn-popup-fechar">Entendi!</button>
     </div>
   </div>
 
@@ -283,7 +280,7 @@
         <div class="popup-quinta-title">
           O que é a Quinta Alternativa?
         </div>
-        <button class="popup-quinta-close" onclick="fecharPopupQuinta()">
+        <button id="btnFecharPopupQuinta" class="popup-quinta-close">
           ×
         </button>
       </div>
@@ -301,7 +298,7 @@
         <div class="popup-gorjeta-title">
           💛 Gorjeta
         </div>
-        <button class="popup-gorjeta-close" onclick="fecharPopupGorjeta()">
+        <button id="btnFecharPopupGorjeta" class="popup-gorjeta-close">
           ×
         </button>
       </div>
@@ -319,32 +316,4 @@
 </footer>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
