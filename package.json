@@ -20,7 +20,7 @@
     "googleapis": "^128.0.0"
   },
   "devDependencies": {
-    "cleancss": "^5.3.0",
+    "clean-css-cli": "^5.6.2",
     "html-minifier": "^4.0.0"
   }
 }
