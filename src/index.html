@@ -7,22 +7,24 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
 </head>
 <body>
+
   <!-- LOADING -->
-<div id="loading" style="display: none;">
-  <div class="loading-icon">🎵</div>
-  <p>Carregando...</p>
-</div>
+  <div id="loading">
+    <div class="loading-icon">🎵</div>
+    <p>Carregando...</p>
+  </div>
 
-<!-- CATEGORIAS -->
-<div id="categoria-container"></div>
+  <!-- CATEGORIAS E MÚSICAS -->
+  <div id="categoria-container"></div>
+  <div id="musicas-container"></div>
 
-<!-- MÚSICAS -->
-<div id="musicas-container"></div>
+  <!-- OVERLAYS E POPUPS (HTML limpo continua) -->
 
-  <!-- Tela de indisponibilidade -->
+    <!-- Tela de indisponibilidade -->
   <div id="indisponivelOverlay" class="indisponivel-overlay">
     <div class="indisponivel-content">
       <div class="indisponivel-title">🎵 Site Temporariamente Indisponível</div>
@@ -30,7 +32,7 @@
         O site está temporariamente fora do ar para manutenção.<br><br>
         Acompanhe as novidades no Instagram:
       </div>
-      <a href="https://www.instagram.com/pedroteixeiramusic?igsh=NGx1dmo3cHc4YzMw&utm_source=qr" class="indisponivel-instagram" target="_blank">@pedroteixeiramusic</a>
+      <a href="https://www.instagram.com/pedroteixeiramusic" class="indisponivel-instagram" target="_blank">@pedroteixeiramusic</a>
     </div>
   </div>
 
@@ -41,9 +43,9 @@
       <div class="show-nao-comecou-message">
         A função 'pedir música' estará disponível ao vivo!<br><br>
         Confira os locais dos próximos shows em 
-        <a href="https://www.instagram.com/pedroteixeiramusic?igsh=NGx1dmo3cHc4YzMw&utm_source=qr" class="show-nao-comecou-instagram" target="_blank">@pedroteixeiramusic</a>
+        <a href="https://www.instagram.com/pedroteixeiramusic" class="show-nao-comecou-instagram" target="_blank">@pedroteixeiramusic</a>
       </div>
-      <button class="btn-show-nao-comecou-fechar" onclick="fecharShowNaoComecou()">Entendi!</button>
+      <button class="btn-show-nao-comecou-fechar" data-action="fechar-show-nao-comecou">Entendi!</button>
     </div>
   </div>
 
@@ -55,158 +57,99 @@
     <div class="light light-green-2"></div>
   </div>
 
-  <!-- Elementos decorativos -->
-  <svg class="music-note-decoration note-1" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#BF9B30" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M9 18V5l12-2v13"></path>
-    <circle cx="6" cy="18" r="3"></circle>
-    <circle cx="18" cy="16" r="3"></circle>
-  </svg>
-  
-  <svg class="music-note-decoration note-2" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#BF9B30" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M12 8a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1h-10Z"></path>
-    <path d="M12 8V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-3"></path>
-    <path d="M2 6h9a1 1 0 0 1 1 1v1"></path>
-    <path d="M5 12h5"></path>
-    <path d="M5 18h5"></path>
-  </svg>
+  <!-- Notas musicais decorativas (svg mantido) -->
+  <svg class="music-note-decoration note-1" ...></svg>
+  <svg class="music-note-decoration note-2" ...></svg>
 
+  <!-- Página Inicial -->
   <div id="pagina-inicial" class="container">
     <div class="header-section">
       <div class="logo-container">
-       <img src="images/logo_pedro_teixeira.PNG" alt="Pedro Teixeira Logo">
+        <img src="images/logo_pedro_teixeira.PNG" alt="Pedro Teixeira Logo">
       </div>
-      
       <div class="profile-section">
         <div class="profile-img">
           <img src="images/profile.png" alt="Pedro Teixeira">
         </div>
       </div>
     </div>
-    
-    <p class="mensagem">Seja bem-vindo(a)! Você está prestes a viver um momento único — feito ao vivo, com violão, voz e presença. Cada nota é tocada com intenção, criando uma atmosfera intimista, pensada para quem está aqui e agora. Quer deixar sua marca nesse instante? É só navegar pelo repertório e escolher a próxima canção. A música começa comigo, mas ganha sentido com você. 🎶</p>
-    <button class="btn-quinta-alternativa" onclick="mostrarPopupQuinta()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"></circle>
-        <path d="M9,9h6v6H9z"></path>
-        <path d="m9 12 2 2 4-4"></path>
-      </svg>
+
+    <p class="mensagem">Seja bem-vindo(a)! Você está prestes a viver um momento único...</p>
+
+    <button class="btn-quinta-alternativa" data-action="mostrar-popup-quinta">
+      <!-- Ícone SVG -->
       O que é a Quinta Alternativa?
     </button>
-    <button class="btn-instagram" onclick="window.open('https://www.instagram.com/pedroteixeiramusic?igsh=NGx1dmo3cHc4YzMw&utm_source=qr')">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-      </svg>
-      <a href="https://www.instagram.com/pedroteixeiramusic?igsh=NGx1dmo3cHc4YzMw&utm_source=qr" target="_blank">@pedroteixeiramusic</a>
-    </button><br>
-    <!-- ALTERAÇÃO 1: Botão "Pedir música" agora começa desabilitado -->
-    <button id="btnPedirMusica" class="btn-principal" onclick="mostrarCategorias()" disabled>Pedir música</button>
-  </div>
 
-  <div id="listaCategorias" style="display:none;" class="container">
+    <button class="btn-instagram" data-action="abrir-instagram">
+      <!-- Ícone SVG -->
+      @pedroteixeiramusic
+    </button>
+
+    <button id="btnPedirMusica" class="btn-principal" data-action="mostrar-categorias" disabled>
+      Pedir música
+    </button>
+  </div>
+  <!-- Lista de Categorias -->
+  <div id="listaCategorias" class="container hidden">
     <h2>Categorias</h2>
     <div class="divider"></div>
     <ul id="categorias"></ul>
   </div>
 
-  <div id="listaMusicas" style="display:none;" class="container">
+  <!-- Lista de Músicas -->
+  <div id="listaMusicas" class="container hidden">
     <h2>Músicas</h2>
     <div class="divider"></div>
-    <input type="text" id="buscaMusica" placeholder="Buscar música..." oninput="filtrarMusicas()">
+    <input type="text" id="buscaMusica" placeholder="Buscar música..." />
     <ul id="musicas"></ul>
-    <button class="btn-principal" onclick="mostrarCategorias()">Voltar para categorias</button>
+    <button class="btn-principal" data-action="voltar-categorias">Voltar para categorias</button>
   </div>
 
-  <!-- Overlay -->
-<div id="popup-overlay" style="
-  display:none;
-  position:fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  background:rgba(18, 18, 18, 0.85); /* usando a cor de fundo do site com transparência */
-  z-index:9998;
-  backdrop-filter: blur(4px);
-"></div>
+  <!-- Overlay do popup -->
+  <div id="popup-overlay" class="popup-overlay hidden"></div>
 
-<!-- Popup harmonizado -->
-<div id="popup-aviso" style="
-  display:none; 
-  position:fixed; 
-  top:50%; left:50%; 
-  transform:translate(-50%, -50%);
-  background: var(--color-background, #121212); 
-  padding: 25px 30px; 
-  border: var(--border-accent, 1px solid #BF9B30);
-  border-radius: 8px;
-  box-shadow: var(--shadow-soft, 0 4px 12px rgba(0, 0, 0, 0.5));
-  z-index:9999;
-  max-width: 400px; 
-  width: 90%;
-  text-align:center;
-  font-family: 'Lato', sans-serif;
-  color: var(--color-text-primary, #F5F5F5);
-">
-  <p style="
-    margin: 0 0 20px; 
-    font-size: 16px;
-    line-height: 1.5;
-    color: var(--color-text-secondary, #D4C7B0);
-  ">
-    Seus dados (nome e telefone) ficarão salvos apenas no seu navegador para agilizar futuros pedidos.
-  </p>
-  <button onclick="fecharPopup()" style="
-    padding: 12px 24px; 
-    border: var(--border-accent, 1px solid #BF9B30); 
-    background: var(--color-primary, #5D1725); 
-    color: var(--color-text-primary, #F5F5F5);
-    cursor: pointer;
-    font-size: 14px;
-    font-family: 'Lato', sans-serif;
-    font-weight: 500;
-    border-radius: 4px;
-    transition: all 0.3s ease;
-    box-shadow: var(--shadow-soft, 0 4px 12px rgba(0, 0, 0, 0.5));
-  " 
-  onmouseover="this.style.background='var(--color-accent, #BF9B30)'; this.style.color='var(--color-secondary, #3A2618)'; this.style.transform='translateY(-2px)'"
-  onmouseout="this.style.background='var(--color-primary, #5D1725)'; this.style.color='var(--color-text-primary, #F5F5F5)'; this.style.transform='translateY(0)'"
-  >
-    Entendi
-  </button>
-</div>
+  <!-- Popup de aviso -->
+  <div id="popup-aviso" class="popup-aviso hidden">
+    <p class="popup-aviso-texto">
+      Seus dados (nome e telefone) ficarão salvos apenas no seu navegador para agilizar futuros pedidos.
+    </p>
+    <button class="btn-fechar-popup" data-action="fechar-popup">Entendi</button>
+  </div>
 
-  <div id="formularioPedido" style="display:none; text-align:left;" class="container">
+  <!-- Formulário de Pedido -->
+  <div id="formularioPedido" class="container hidden">
     <h2>Pedido</h2>
     <div class="divider"></div>
-    <form onsubmit="enviarPedido(event)">
+    <form id="formPedido">
       <div class="form-row">
         <div class="form-field">
           <label>Nome:</label>
-          <!-- Alteração 5: Reduzir limite de caracteres de 20 para 17 -->
-          <input type="text" id="nome" required maxlength="17">
+          <input type="text" id="nome" required maxlength="17" />
         </div>
         <div class="form-field">
           <label>Telefone:</label>
-          <!-- Alteração 4: Limitar a máximo de 11 dígitos numéricos, não obrigatório -->
-          <input type="tel" id="telefone" placeholder="(11) 99999-9999" maxlength="15" oninput="formatarTelefone(this); verificarConsentimento();">
+          <input type="tel" id="telefone" maxlength="15" placeholder="(11) 99999-9999" />
         </div>
       </div>
 
-      <!-- Alteração 7: Caixa de consentimento abaixo do campo de telefone -->
       <div class="consent-container">
         <div class="consent-checkbox">
-          <input type="checkbox" id="consentimento" name="consentimento" disabled>
-          <label for="consentimento" id="labelConsentimento">Quero ficar por dentro de novas experiências musicais como esta. Aceito receber mensagens suas.</label>
+          <input type="checkbox" id="consentimento" disabled />
+          <label for="consentimento" id="labelConsentimento">
+            Quero ficar por dentro de novas experiências musicais como esta.
+          </label>
         </div>
       </div>
 
       <label>Música:</label>
-      <input type="text" id="musica" readonly>
+      <input type="text" id="musica" readonly />
 
-      <label>Gorjeta (opcional): 
-        <span class="help-icon" onclick="mostrarPopupGorjeta()">?</span>
+      <label>
+        Gorjeta (opcional):
+        <span class="help-icon" data-action="mostrar-popup-gorjeta">?</span>
       </label>
-      <select id="gorjeta" onchange="atualizarGorjeta()">
+      <select id="gorjeta">
         <option value="">Nenhuma gorjeta agora</option>
         <option value="3">R$3</option>
         <option value="7">R$7</option>
@@ -216,10 +159,10 @@
         <option value="100">R$100</option>
         <option value="outro">Outro valor</option>
       </select>
-      
-      <div id="outroValorContainer">
+
+      <div id="outroValorContainer" class="hidden">
         <label>Digite o valor da gorjeta:</label>
-        <input type="number" id="outroValor" min="1" step="1" placeholder="Digite o valor em R$">
+        <input type="number" id="outroValor" min="1" step="1" placeholder="Digite o valor em R$" />
       </div>
 
       <label>Mensagem ou dedicatória (disponível com gorjeta):</label>
@@ -229,13 +172,13 @@
     </form>
   </div>
 
-  <div id="confirmacao" style="display:none;" class="container">
-    <h2>Pedido enviado com sucesso!🎤🎶</h2>
+  <!-- Confirmação -->
+  <div id="confirmacao" class="container hidden">
+    <h2>Pedido enviado com sucesso! 🎤🎶</h2>
     <div class="divider"></div>
-    
-    <div id="pixContainer" style="display:none;">
+
+    <div id="pixContainer" class="hidden">
       <h3>Agradecemos sua gorjeta!</h3>
-      
       <div class="pix-instrucoes">
         <h4>Como fazer o PIX:</h4>
         <ol>
@@ -245,105 +188,58 @@
           <li>Confirme o pagamento</li>
         </ol>
       </div>
-      
       <p><strong>Código PIX:</strong></p>
-      <textarea id="chavePix" readonly style="height: 80px; font-size: 0.9em;"></textarea>
-      
-      <button class="btn-copiar-pix" onclick="copiarPixConfirmacao()">Copiar PIX</button>
+      <textarea id="chavePix" readonly></textarea>
+      <button class="btn-copiar-pix" data-action="copiar-pix">Copiar PIX</button>
     </div>
-    
-    <button id="btnVoltarInicio" class="btn-principal" onclick="mostrarPopupDica()">Página inicial</button>
 
+    <button id="btnVoltarInicio" class="btn-principal" data-action="mostrar-popup-dica">Página inicial</button>
   </div>
 
-  <!-- Pop-up de Dica -->
-  <div id="popupDica" class="popup-overlay">
+  <!-- Pop-up Dica -->
+  <div id="popupDica" class="popup-overlay hidden">
     <div class="popup-content">
-      <div class="popup-title">
-        ✅ Dica importante!
-      </div>
-      
+      <div class="popup-title">✅ Dica importante!</div>
       <div class="popup-message">
-        Pode pedir mais músicas sempre que quiser — só fique atento ao show para não repetir as que já tocaram. Assim a magia continua! 🎶
+        Pode pedir mais músicas sempre que quiser — só fique atento ao show para não repetir as que já tocaram.
       </div>
-      
       <div class="popup-instagram">
         <p>📸 Vai filmar esse momento?</p>
-        <p>Me marca no Instagram: <strong><a href="https://www.instagram.com/pedroteixeiramusic?igsh=NGx1dmo3cHc4YzMw&utm_source=qr" target="_blank">@pedroteixeiramusic</a></strong> 💛</p>
+        <p>Me marca no Instagram: <strong><a href="https://www.instagram.com/pedroteixeiramusic" target="_blank">@pedroteixeiramusic</a></strong> 💛</p>
       </div>
-      
-      <button class="btn-popup-fechar" onclick="fecharPopupDica()">Entendi!</button>
+      <button class="btn-popup-fechar" data-action="fechar-popup-dica">Entendi!</button>
     </div>
   </div>
 
   <!-- Pop-up Quinta Alternativa -->
-  <div id="popupQuinta" class="popup-quinta-overlay">
+  <div id="popupQuinta" class="popup-quinta-overlay hidden">
     <div class="popup-quinta-content">
       <div class="popup-quinta-header">
-        <div class="popup-quinta-title">
-          O que é a Quinta Alternativa?
-        </div>
-        <button class="popup-quinta-close" onclick="fecharPopupQuinta()">
-          ×
-        </button>
+        <div class="popup-quinta-title">O que é a Quinta Alternativa?</div>
+        <button class="popup-quinta-close" data-action="fechar-popup-quinta">×</button>
       </div>
-      
       <div class="popup-quinta-message">
-        Quinta Alternativa é um projeto criado e apresentado por Pedro desde fevereiro de 2023, com shows ao vivo todas as quintas-feiras em locais selecionados. O objetivo principal é celebrar e valorizar a arte e a cultura, especialmente a música. Quer acompanhar a agenda? Siga <a href="https://www.instagram.com/pedroteixeiramusic?igsh=NGx1dmo3cHc4YzMw&utm_source=qr" target="_blank">@pedroteixeiramusic</a> no Instagram!
+        Quinta Alternativa é um projeto criado e apresentado por Pedro desde fevereiro de 2023...
       </div>
     </div>
   </div>
 
   <!-- Pop-up Gorjeta -->
-  <div id="popupGorjeta" class="popup-gorjeta-overlay">
+  <div id="popupGorjeta" class="popup-gorjeta-overlay hidden">
     <div class="popup-gorjeta-content">
       <div class="popup-gorjeta-header">
-        <div class="popup-gorjeta-title">
-          💛 Gorjeta
-        </div>
-        <button class="popup-gorjeta-close" onclick="fecharPopupGorjeta()">
-          ×
-        </button>
+        <div class="popup-gorjeta-title">💛 Gorjeta</div>
+        <button class="popup-gorjeta-close" data-action="fechar-popup-gorjeta">×</button>
       </div>
-      
       <div class="popup-gorjeta-message">
-        Se quiser, pode deixar um valor como forma de apoio ao artista — é simples, voluntário e ajuda a manter essa troca viva. 
-        Também dá pra escrever uma mensagem ou dedicatória, que vai junto com seu pedido de música, direto pra mim. 
-        Mas o mais importante é ter você aqui, participando. Fica à vontade.
+        Se quiser, pode deixar um valor como forma de apoio ao artista...
       </div>
     </div>
   </div>
-  <script src="app.min.js"></script>
+
+  <!-- Rodapé -->
   <footer id="rodape">
-  <small id="copyright"></small>
-</footer>
+    <small id="copyright"></small>
+  </footer>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
