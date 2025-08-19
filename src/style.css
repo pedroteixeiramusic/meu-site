@@ -1315,3 +1315,9 @@
   color: var(--color-secondary, #3A2618);
   transform: translateY(-2px);
 }
+/* Empilha verticalmente os botões da página inicial */
+#pagina-inicial button {
+  display: block;        /* cada botão em linha própria */
+  margin: 12px auto;     /* centraliza e dá espaçamento */
+  width: max-content;    /* ajusta ao conteúdo do botão */
+}
