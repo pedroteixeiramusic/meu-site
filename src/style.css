@@ -1243,473 +1243,75 @@
   margin-top: 5px;
   margin-bottom: 5px;
 }
-/* Reset básico */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+/* Elementos que estavam inline */
+
+/* Loading oculto inicialmente */
+#loading { display: none; }
+
+/* Containers ocultos */
+#listaCategorias,
+#listaMusicas,
+#formularioPedido,
+#confirmacao,
+#pixContainer,
+#popup-overlay,
+#popup-aviso {
+  display: none;
 }
 
-/* Corpo e containers */
-body {
-  background: #fafafa;
-  color: #222;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-}
-
-/* Containers centrais */
-.container {
-  max-width: 600px;
-  width: 100%;
-  background: white;
-  border-radius: 8px;
-  padding: 20px 30px;
-  box-shadow: 0 0 10px rgb(0 0 0 / 0.1);
-  margin-bottom: 30px;
-}
-
-.hidden {
-  display: none !important;
-}
-
-/* Títulos */
-h1, h2, h3, h4 {
-  font-weight: 600;
-  margin-bottom: 15px;
-  color: #333;
-}
-
-h1 {
-  font-size: 2.5rem;
-}
-
-h2 {
-  font-size: 1.8rem;
-}
-
-h3 {
-  font-size: 1.4rem;
-}
-
-h4 {
-  font-size: 1.2rem;
-}
-
-/* Divisor */
-.divider {
-  border-bottom: 1px solid #ddd;
-  margin-bottom: 15px;
-}
-
-/* Listas */
-ul {
-  list-style: none;
-}
-
-ul#categorias li,
-ul#musicas li {
-  padding: 10px 15px;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: background-color 0.25s ease;
-  border: 1px solid transparent;
-  margin-bottom: 8px;
-}
-
-ul#categorias li:hover,
-ul#musicas li:hover {
-  background-color: #f0f0f0;
-  border-color: #bbb;
-}
-
-/* Botões principais */
-.btn-principal {
-  background-color: #3c8dbc;
-  color: white;
-  border: none;
-  padding: 12px 22px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-top: 15px;
-  width: 100%;
-  max-width: 300px;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.btn-principal:hover {
-  background-color: #3274b8;
-}
-
-/* Formulário */
-form {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-row {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 15px;
-}
-
-.form-field {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-label {
-  margin-bottom: 6px;
-  font-weight: 600;
-  color: #555;
-}
-
-input[type="text"],
-input[type="tel"],
-input[type="number"],
-select,
-textarea {
-  padding: 10px 12px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-  resize: vertical;
-}
-
-input[type="text"]:focus,
-input[type="tel"]:focus,
-input[type="number"]:focus,
-select:focus,
-textarea:focus {
-  border-color: #3c8dbc;
-  outline: none;
-}
-
-textarea {
-  min-height: 80px;
-  margin-top: 5px;
-  resize: vertical;
-  font-family: inherit;
-}
-
-textarea:disabled {
-  background-color: #eee;
-  cursor: not-allowed;
-  color: #888;
-}
-
-/* Consentimento checkbox */
-.consent-container {
-  margin-bottom: 15px;
-}
-
-.consent-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.consent-checkbox input[type="checkbox"] {
-  cursor: not-allowed;
-}
-
-/* Help icon para popups */
-.help-icon {
-  display: inline-block;
-  margin-left: 8px;
-  background-color: #3c8dbc;
-  color: white;
-  font-weight: 700;
-  border-radius: 50%;
-  width: 18px;
-  height: 18px;
-  line-height: 18px;
-  text-align: center;
-  cursor: pointer;
-  user-select: none;
-  font-size: 0.85rem;
-  transition: background-color 0.3s ease;
-}
-
-.help-icon:hover {
-  background-color: #3274b8;
-}
-
-/* Popup Overlay genérico */
-.popup-overlay {
+/* Overlay */
+#popup-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgb(0 0 0 / 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(18, 18, 18, 0.85);
+  z-index: 9998;
+  backdrop-filter: blur(4px);
+}
+
+/* Popup harmonizado */
+#popup-aviso {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--color-background, #121212);
+  padding: 25px 30px;
+  border: var(--border-accent, 1px solid #BF9B30);
+  border-radius: 8px;
+  box-shadow: var(--shadow-soft, 0 4px 12px rgba(0,0,0,0.5));
   z-index: 9999;
-}
-
-/* Popup de aviso simples */
-.popup-aviso {
-  background: white;
-  padding: 25px 30px;
   max-width: 400px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgb(0 0 0 / 0.15);
+  width: 90%;
   text-align: center;
+  font-family: 'Lato', sans-serif;
+  color: var(--color-text-primary, #F5F5F5);
 }
 
-.popup-aviso-texto {
-  font-size: 1rem;
-  margin-bottom: 20px;
-  color: #333;
+/* Texto do popup */
+#popup-aviso p {
+  margin: 0 0 20px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--color-text-secondary, #D4C7B0);
 }
 
-.btn-fechar-popup {
-  padding: 10px 18px;
-  background-color: #3c8dbc;
-  color: white;
-  border: none;
-  border-radius: 6px;
+/* Botão do popup */
+#btnFecharPopup {
+  padding: 12px 24px;
+  border: var(--border-accent, 1px solid #BF9B30);
+  background: var(--color-primary, #5D1725);
+  color: var(--color-text-primary, #F5F5F5);
   cursor: pointer;
-  font-weight: 600;
-  font-size: 1rem;
+  font-size: 14px;
+  font-family: 'Lato', sans-serif;
+  font-weight: 500;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-soft, 0 4px 12px rgba(0,0,0,0.5));
 }
 
-.btn-fechar-popup:hover {
-  background-color: #3274b8;
-}
-
-/* Popups Dica e Gorjeta estilo */
-.popup-content, .popup-gorjeta-content, .popup-quinta-content {
-  background: white;
-  max-width: 450px;
-  padding: 25px 30px;
-  border-radius: 10px;
-  box-shadow: 0 0 15px rgb(0 0 0 / 0.25);
-  position: relative;
-  text-align: center;
-  color: #222;
-}
-
-.popup-title,
-.popup-gorjeta-title,
-.popup-quinta-title {
-  font-size: 1.4rem;
-  font-weight: 700;
-  margin-bottom: 15px;
-  color: #3c8dbc;
-}
-
-.popup-message,
-.popup-gorjeta-message,
-.popup-quinta-message {
-  font-size: 1rem;
-  line-height: 1.4;
-  margin-bottom: 20px;
-  color: #444;
-}
-
-/* Botões fechar popup */
-.btn-popup-fechar,
-.popup-gorjeta-close,
-.popup-quinta-close {
-  position: absolute;
-  top: 12px;
-  right: 15px;
-  font-size: 1.5rem;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-weight: 700;
-  color: #666;
-  transition: color 0.3s ease;
-}
-
-.btn-popup-fechar:hover,
-.popup-gorjeta-close:hover,
-.popup-quinta-close:hover {
-  color: #3c8dbc;
-}
-
-/* Popup Gorjeta */
-.popup-gorjeta-overlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgb(0 0 0 / 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
-}
-
-/* Popup Quinta Alternativa */
-.popup-quinta-overlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgb(0 0 0 / 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
-}
-
-.popup-quinta-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.popup-quinta-message {
-  text-align: justify;
-  font-size: 1rem;
-  color: #444;
-}
-
-/* Pix Container */
-#pixContainer {
-  margin-top: 20px;
-  background-color: #e0f0ff;
-  border: 1px solid #3c8dbc;
-  padding: 15px 20px;
-  border-radius: 8px;
-}
-
-.pix-instrucoes ol {
-  margin-left: 20px;
-  margin-bottom: 15px;
-  color: #333;
-}
-
-.pix-instrucoes ol li {
-  margin-bottom: 8px;
-}
-
-/* Campo PIX e botão copiar */
-#chavePix {
-  width: 100%;
-  height: 90px;
-  font-family: monospace;
-  font-size: 1rem;
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #3c8dbc;
-  resize: none;
-  background-color: #f5faff;
-  color: #111;
-  margin-bottom: 12px;
-  user-select: all;
-}
-
-.btn-copiar-pix {
-  background-color: #3c8dbc;
-  color: white;
-  padding: 10px 22px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-  width: 100%;
-  max-width: 200px;
-  margin: 0 auto;
-  display: block;
-  transition: background-color 0.3s ease;
-}
-
-.btn-copiar-pix:hover {
-  background-color: #2e6ca9;
-}
-
-/* Rodapé */
-#rodape {
-  text-align: center;
-  color: #999;
-  font-size: 0.85rem;
-  margin-top: auto;
-  padding: 10px 0;
-}
-
-/* Input container outro valor gorjeta */
-#outroValorContainer {
-  margin-top: 10px;
-  margin-bottom: 15px;
-}
-
-#outroValorContainer input {
-  width: 100%;
-  max-width: 150px;
-}
-
-/* Campo busca música */
-#buscaMusica {
-  width: 100%;
-  padding: 10px 15px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  margin-bottom: 12px;
-  transition: border-color 0.3s ease;
-}
-
-#buscaMusica:focus {
-  border-color: #3c8dbc;
-  outline: none;
-}
-
-/* Popup Instagram dentro dica */
-.popup-instagram p {
-  margin: 8px 0;
-  font-size: 1rem;
-}
-
-/* Link instagram */
-.popup-instagram a {
-  color: #3c8dbc;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.popup-instagram a:hover {
-  text-decoration: underline;
-}
-
-/* Mensagem com gorjeta ativada */
-#mensagem:enabled {
-  background-color: white;
-  cursor: text;
-}
-
-/* Cursor disabled inputs */
-input:disabled,
-textarea:disabled {
-  cursor: not-allowed;
-  background-color: #eee;
-}
-
-/* Responsivo básico */
-@media (max-width: 480px) {
-  .form-row {
-    flex-direction: column;
-  }
-
-  .btn-principal {
-    max-width: 100%;
-  }
-
-  .container {
-    padding: 15px 20px;
-  }
+#btnFecharPopup:hover {
+  background: var(--color-accent, #BF9B30);
+  color: var(--color-secondary, #3A2618);
+  transform: translateY(-2px);
 }
