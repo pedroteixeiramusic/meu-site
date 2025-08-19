@@ -573,3 +573,215 @@ document.addEventListener('DOMContentLoaded', () => {
 
     el.textContent = `© ${textoAno} Pedro Teixeira. Todos os direitos reservados.`;
   });
+// Função para fechar o popup "Show Não Começou"
+function fecharShowNaoComecou() {
+  const overlay = document.getElementById('showNaoComecouOverlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+// Função para mostrar popup Quinta Alternativa
+function mostrarPopupQuinta() {
+  const popup = document.getElementById('popupQuinta');
+  if (popup) popup.style.display = 'block';
+}
+
+// Função para fechar popup Quinta Alternativa
+function fecharPopupQuinta() {
+  const popup = document.getElementById('popupQuinta');
+  if (popup) popup.style.display = 'none';
+}
+
+// Função para mostrar categorias (ativa a tela de categorias)
+function mostrarCategorias() {
+  document.getElementById('listaCategorias').style.display = 'block';
+  document.getElementById('listaMusicas').style.display = 'none';
+}
+
+// Função para filtrar músicas na lista (input de busca)
+function filtrarMusicas() {
+  const busca = document.getElementById('buscaMusica').value.toLowerCase();
+  const musicas = document.querySelectorAll('#musicas li');
+  musicas.forEach(musica => {
+    const texto = musica.textContent.toLowerCase();
+    musica.style.display = texto.includes(busca) ? '' : 'none';
+  });
+}
+
+// Função para formatar telefone (input do telefone)
+function formatarTelefone(input) {
+  let valor = input.value.replace(/\D/g, '');
+  if (valor.length > 11) valor = valor.slice(0, 11);
+
+  if (valor.length > 10) {
+    valor = valor.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
+  } else if (valor.length > 5) {
+    valor = valor.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+  } else if (valor.length > 2) {
+    valor = valor.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+  } else if (valor.length > 0) {
+    valor = valor.replace(/^(\d*)/, '($1');
+  }
+
+  input.value = valor;
+}
+
+// Função para verificar se o consentimento pode ser habilitado (exemplo)
+function verificarConsentimento() {
+  const telefone = document.getElementById('telefone').value;
+  const checkbox = document.getElementById('consentimento');
+  if (telefone.replace(/\D/g, '').length >= 10) {
+    checkbox.disabled = false;
+  } else {
+    checkbox.disabled = true;
+    checkbox.checked = false;
+  }
+}
+
+// Função para atualizar o campo gorjeta
+function atualizarGorjeta() {
+  const select = document.getElementById('gorjeta');
+  const outroValorContainer = document.getElementById('outroValorContainer');
+  const mensagem = document.getElementById('mensagem');
+  if (select.value === 'outro') {
+    outroValorContainer.style.display = 'block';
+    mensagem.disabled = true;
+    mensagem.placeholder = "Envie uma gorjeta para ativar";
+  } else if (select.value && select.value !== '') {
+    outroValorContainer.style.display = 'none';
+    mensagem.disabled = false;
+    mensagem.placeholder = "Escreva sua mensagem ou dedicatória";
+  } else {
+    outroValorContainer.style.display = 'none';
+    mensagem.disabled = true;
+    mensagem.placeholder = "Envie uma gorjeta para ativar";
+  }
+}
+
+// Função para mostrar popup de aviso (exemplo)
+function mostrarPopup() {
+  document.getElementById('popup-overlay').style.display = 'block';
+  document.getElementById('popup-aviso').style.display = 'block';
+}
+
+// Função para fechar popup de aviso
+function fecharPopup() {
+  document.getElementById('popup-overlay').style.display = 'none';
+  document.getElementById('popup-aviso').style.display = 'none';
+}
+
+// Função para copiar PIX (do textarea)
+function copiarPixConfirmacao() {
+  const pix = document.getElementById('chavePix');
+  if (!pix) return;
+  pix.select();
+  pix.setSelectionRange(0, 99999); // For mobile devices
+  navigator.clipboard.writeText(pix.value).then(() => {
+    alert('PIX copiado para a área de transferência!');
+  });
+}
+
+// Função para mostrar popup Dica
+function mostrarPopupDica() {
+  const popup = document.getElementById('popupDica');
+  if (popup) popup.style.display = 'block';
+}
+
+// Função para fechar popup Dica
+function fecharPopupDica() {
+  const popup = document.getElementById('popupDica');
+  if (popup) popup.style.display = 'none';
+}
+
+// Função para mostrar popup Gorjeta
+function mostrarPopupGorjeta() {
+  const popup = document.getElementById('popupGorjeta');
+  if (popup) popup.style.display = 'block';
+}
+
+// Função para fechar popup Gorjeta
+function fecharPopupGorjeta() {
+  const popup = document.getElementById('popupGorjeta');
+  if (popup) popup.style.display = 'none';
+}
+
+// Função para enviar pedido (formulário)
+function enviarPedido(event) {
+  event.preventDefault();
+
+  // Aqui você colocaria sua lógica de envio
+  // Exemplo simples: mostrar confirmação e esconder formulário
+  document.getElementById('formularioPedido').style.display = 'none';
+  document.getElementById('confirmacao').style.display = 'block';
+
+  // Se tiver gorjeta, mostrar container pix
+  const gorjeta = document.getElementById('gorjeta').value;
+  if (gorjeta && gorjeta !== '') {
+    document.getElementById('pixContainer').style.display = 'block';
+  } else {
+    document.getElementById('pixContainer').style.display = 'none';
+  }
+}
+
+// Função para mostrar músicas (exemplo de navegação)
+function mostrarMusicas() {
+  document.getElementById('listaCategorias').style.display = 'none';
+  document.getElementById('listaMusicas').style.display = 'block';
+}
+
+// Event listeners para substituir os handlers inline
+document.addEventListener('DOMContentLoaded', () => {
+  // Botão fechar showNaoComecou
+  const btnFecharShow = document.querySelector('.btn-show-nao-comecou-fechar');
+  if (btnFecharShow) btnFecharShow.addEventListener('click', fecharShowNaoComecou);
+
+  // Botão Quinta Alternativa
+  const btnQuinta = document.querySelector('.btn-quinta-alternativa');
+  if (btnQuinta) btnQuinta.addEventListener('click', mostrarPopupQuinta);
+
+  // Botão Instagram (abrir link)
+  const btnInstagram = document.querySelector('.btn-instagram');
+  if (btnInstagram) btnInstagram.addEventListener('click', () => {
+    window.open('https://www.instagram.com/pedroteixeiramusic?igsh=NGx1dmo3cHc4YzMw&utm_source=qr');
+  });
+
+  // Botão Pedir música
+  const btnPedirMusica = document.getElementById('btnPedirMusica');
+  if (btnPedirMusica) btnPedirMusica.addEventListener('click', mostrarCategorias);
+
+  // Input telefone
+  const inputTelefone = document.getElementById('telefone');
+  if (inputTelefone) {
+    inputTelefone.addEventListener('input', () => {
+      formatarTelefone(inputTelefone);
+      verificarConsentimento();
+    });
+  }
+
+  // Select gorjeta
+  const selectGorjeta = document.getElementById('gorjeta');
+  if (selectGorjeta) selectGorjeta.addEventListener('change', atualizarGorjeta);
+
+  // Form pedido
+  const formPedido = document.querySelector('#formularioPedido form');
+  if (formPedido) formPedido.addEventListener('submit', enviarPedido);
+
+  // Botão voltar para categorias
+  const btnVoltarCategorias = document.querySelector('#listaMusicas button.btn-principal');
+  if (btnVoltarCategorias) btnVoltarCategorias.addEventListener('click', mostrarCategorias);
+
+  // Botão copiar pix
+  const btnCopiarPix = document.querySelector('.btn-copiar-pix');
+  if (btnCopiarPix) btnCopiarPix.addEventListener('click', copiarPixConfirmacao);
+
+  // Botão fechar popup dica
+  const btnFecharDica = document.querySelector('.btn-popup-fechar');
+  if (btnFecharDica) btnFecharDica.addEventListener('click', fecharPopupDica);
+
+  // Botão fechar popup quinta
+  const btnFecharPopupQuinta = document.querySelector('.popup-quinta-close');
+  if (btnFecharPopupQuinta) btnFecharPopupQuinta.addEventListener('click', fecharPopupQuinta);
+
+  // Botão fechar popup gorjeta
+  const btnFecharPopupGorjeta = document.querySelector('.popup-gorjeta-close');
+  if (btnFecharPopupGorjeta) btnFecharPopupGorjeta.addEventListener('click', fecharPopupGorjeta);
+});
