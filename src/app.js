@@ -82,7 +82,9 @@
         
         if (data.data && Array.isArray(data.data)) {
           categorias = data.data;
-          pedidosMusicaAtivos = data.disponivel;
+          if (data.disponivel !== undefined) {
+  pedidosMusicaAtivos = data.disponivel;
+}
           console.log('✅ Categorias carregadas:', categorias);
           console.log('✅ Status disponível:', pedidosMusicaAtivos);
           
