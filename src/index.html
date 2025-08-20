@@ -185,13 +185,19 @@
   </div>
 
   <!-- Pop-ups -->
-  <div id="popupDica" class="popup-overlay">
-    <div class="popup-content">
-      <div class="popup-title">✅ Dica importante!</div>
-      <div class="popup-message">Pode pedir mais músicas sempre que quiser...</div>
-      <button class="btn-popup-fechar" id="btnFecharDica">Entendi!</button>
+ <div id="popupDica" class="popup-overlay" role="dialog" aria-modal="true">
+  <div class="popup-content">
+    <h2 class="popup-title">✅ Dica importante!</h2> <!-- título em <h2> em vez de <div> -->
+    <p class="popup-message">Pode pedir mais músicas sempre que quiser — só fique atento ao show para não repetir as que já tocaram. Assim a magia continua! 🎶</p>
+    
+    <div class="popup-instagram">
+      <p>📸 Vai filmar esse momento?</p>
+      <p>Me marca no Instagram: <strong><a href="https://www.instagram.com/pedroteixeiramusic?igsh=NGx1dmo3cHc4YzMw&utm_source=qr" target="_blank" rel="noopener">@pedroteixeiramusic</a></strong> 💛</p>
     </div>
+    
+    <button class="btn-popup-fechar" id="btnFecharDica">Entendi!</button>
   </div>
+</div>
 
   <div id="popupQuinta" class="popup-quinta-overlay">
     <div class="popup-quinta-content">
