@@ -10,7 +10,7 @@
   "minify:css": "cleancss -o dist/style.min.css src/style.css",
   "minify:html": "html-minifier --collapse-whitespace --remove-comments --minify-css true --minify-js true -o dist/index.html src/index.html",
   "copy:images": "cp -r src/images dist/",
-  "build": "npm run minify:js && npm run minify:css && npm run minify:html && npm run copy:images"
+  "build": "npm run minify:js && npm run minify:css && npm run minify:html && npm run copy:images && npm run obfuscate:js"
 },
   "keywords": [],
   "author": "",
