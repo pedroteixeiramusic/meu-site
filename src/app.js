@@ -214,18 +214,24 @@ async function mostrarMusicas(categoria) {
         const nomeMusica = String(musica);
         const nomeSeguro = nomeMusica.replace(/'/g, "\\'");
         
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <div class="musica-item">
-            <span>${nomeMusica}</span>
-            <button class="btn-musica" onclick="selecionarMusica('${nomeSeguro}')">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="5,3 19,12 5,21"></polygon>
-              </svg>
-              Toca essa!
-            </button>
-          </div>
-        `;
+       const li = document.createElement('li');
+li.classList.add('musica-item');
+li.innerHTML = `
+  <span>${nomeMusica}</span>
+  <button class="btn-musica">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="5,3 19,12 5,21"></polygon>
+    </svg>
+    Toca essa!
+  </button>
+`;
+const btn = li.querySelector('.btn-musica');
+
+// Listener seguro, funciona mesmo depois da ofuscação
+btn.addEventListener('click', () => {
+  selecionarMusica(nomeSeguro); // ainda funciona porque é referência interna
+});
+
         
         listaMusicas.appendChild(li);
         console.log(`✅ Música ${index + 1} adicionada:`, nomeMusica);
