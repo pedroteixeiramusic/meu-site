@@ -5,7 +5,7 @@
   "description": "",
  "scripts": {
   "test": "echo \"Error: no test specified\" && exit 1",
-  "minify:js": "terser src/app.js -o dist/app.min.js --compress drop_console=true --mangle --mangle-props --toplevel",
+  "obfuscate:js": "terser src/app.js -o dist/app.min.js --compress drop_console=true --mangle --mangle reserved=['categoriaAtual','musica','btnPedirMusica','btnVoltarInicio','mostrarCategorias','atualizarGorjeta','fecharPopup','fecharPopupDica','fecharPopupQuinta','fecharShowNaoComecou','mostrarPopupQuinta','mostrarPopupGorjeta','enviarPedido','formatarTelefone','verificarConsentimento'] --toplevel",
   "minify:css": "cleancss -o dist/style.min.css src/style.css",
   "minify:html": "html-minifier --collapse-whitespace --remove-comments --minify-css true --minify-js true -o dist/index.html src/index.html",
   "copy:images": "cp -r src/images dist/",
