@@ -6,6 +6,7 @@
  "scripts": {
   "test": "echo \"Error: no test specified\" && exit 1",
   "minify:js": "terser src/app.js -o dist/app.min.js --compress drop_console=true --mangle",
+   "obfuscate:js": "javascript-obfuscator dist/app.min.js --output dist/app.obf.js --compact true --control-flow-flattening true",
   "minify:css": "cleancss -o dist/style.min.css src/style.css",
   "minify:html": "html-minifier --collapse-whitespace --remove-comments --minify-css true --minify-js true -o dist/index.html src/index.html",
   "copy:images": "cp -r src/images dist/",
