@@ -1321,3 +1321,11 @@
   margin: 12px auto;     /* centraliza e dá espaçamento */
   width: max-content;    /* ajusta ao conteúdo do botão */
 }
+.profile-section {
+    gap: 8px; /* Reduz ainda mais o espaço entre foto e texto */
+}
+
+.profile-section img {
+    margin-bottom: 0px; /* Remove qualquer margem extra na imagem */
+}
+
