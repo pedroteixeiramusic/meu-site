@@ -293,7 +293,7 @@ btn.addEventListener('click', () => {
         mensagemField.placeholder = 'Digite sua mensagem ou dedicatória...';
       } else {
         mensagemField.disabled = true;
-        mensagemField.placeholder = 'Envie uma gorjeta para ativar';
+        mensagemField.placeholder = 'Selecione acima para ativar';
         mensagemField.value = '';
       }
     }
@@ -425,7 +425,7 @@ btn.addEventListener('click', () => {
       document.getElementById('consentimento').checked = false;
       document.getElementById('outroValorContainer').style.display = 'none';
       document.getElementById('mensagem').disabled = true;
-      document.getElementById('mensagem').placeholder = 'Envie uma gorjeta para ativar';
+      document.getElementById('mensagem').placeholder = 'Selecione acima para ativar';
       
       verificarConsentimento();
       
