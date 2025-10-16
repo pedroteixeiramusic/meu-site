@@ -152,9 +152,9 @@
       </div>
       <label>Música:</label>
       <input type="text" id="musica" readonly>
-      <label>Gorjeta (opcional): <span class="help-icon" id="btnMostrarGorjeta">?</span></label>
+      <label>Apoiar (opcional): <span class="help-icon" id="btnMostrarGorjeta">?</span></label>
       <select id="gorjeta">
-        <option value="">Nenhuma gorjeta agora</option>
+        <option value="">Sem apoiar agora</option>
         <option value="3">R$3</option>
         <option value="7">R$7</option>
         <option value="15">R$15</option>
@@ -164,11 +164,11 @@
         <option value="outro">Outro valor</option>
       </select>
       <div id="outroValorContainer">
-        <label>Digite o valor da gorjeta:</label>
+        <label>Digite o valor do apoio:</label>
         <input type="number" id="outroValor" min="1" step="1" placeholder="Digite o valor em R$">
       </div>
-      <label>Mensagem ou dedicatória (disponível com gorjeta):</label>
-      <textarea id="mensagem" placeholder="Envie uma gorjeta para ativar" disabled></textarea>
+      <label>Mensagem ou dedicatória (disponível ao apoiar):</label>
+      <textarea id="mensagem" placeholder="Selecione acima para ativar" disabled></textarea>
       <button type="submit" class="btn-principal">Enviar pedido</button>
     </form>
   </div>
@@ -177,7 +177,7 @@
     <h2>Pedido enviado com sucesso!🎤🎶</h2>
     <div class="divider"></div>
     <div id="pixContainer">
-      <h3>Agradecemos sua gorjeta!</h3>
+      <h3>Obrigado por apoiar este momento 🎵</h3>
       <div class="pix-instrucoes">
         <h4>Como fazer o PIX:</h4>
         <ol>
@@ -226,14 +226,17 @@
   <div id="popupGorjeta" class="popup-gorjeta-overlay">
   <div class="popup-gorjeta-content">
     <div class="popup-gorjeta-header">
-      <div class="popup-gorjeta-title">💛 Gorjeta</div>
+      <div class="popup-gorjeta-title">Apoio ao artista</div>
       <button class="popup-gorjeta-close" id="btnFecharGorjeta">×</button>
     </div>
     <div class="popup-gorjeta-message">
-      Se quiser, pode deixar um valor como forma de apoio ao artista — é simples, voluntário e ajuda a manter essa troca viva. 
-      Também dá pra escrever uma mensagem ou dedicatória, que vai junto com seu pedido de música, direto pra mim. 
-      Mas o mais importante é ter você aqui, participando. Fica à vontade.
-    </div>
+  💛 Apoiar é uma forma de valorizar o momento e a música.<br>
+  Seu apoio ajuda a manter este projeto vivo — e quem apoia pode deixar uma mensagem ou dedicatória junto ao pedido. 🎵
+  <p style="margin-top: 0.5em;">
+    <em>Para apoiar, clique no campo abaixo e escolha um valor.</em>
+  </p>
+</div>
+
   </div>
 </div>
 
