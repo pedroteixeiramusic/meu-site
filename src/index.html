@@ -154,15 +154,16 @@
       <input type="text" id="musica" readonly>
       <label>Apoiar (opcional): <span class="help-icon" id="btnMostrarGorjeta">?</span></label>
       <select id="gorjeta">
-        <option value="">Sem apoiar neste pedido</option>
-        <option value="3">R$3</option>
-        <option value="7">R$7</option>
-        <option value="15">R$15</option>
-        <option value="25">R$25</option>
-        <option value="50">R$50</option>
-        <option value="100">R$100</option>
-        <option value="outro">Outro valor</option>
-      </select>
+  <option value="" disabled selected>Clique aqui para selecionar</option>
+  <option value="3">Apoiar com R$3</option>
+  <option value="7">Apoiar com R$7</option>
+  <option value="15">Apoiar com R$15</option>
+  <option value="25">Apoiar com R$25</option>
+  <option value="50">Apoiar com R$50</option>
+  <option value="100">Apoiar com R$100</option>
+  <option value="outro">Outro valor</option>
+  <option value="nenhum">Sem apoiar neste pedido</option>
+</select>
       <div id="outroValorContainer">
         <label>Digite o valor do apoio:</label>
         <input type="number" id="outroValor" min="1" step="1" placeholder="Digite o valor em R$">
