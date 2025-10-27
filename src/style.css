@@ -822,7 +822,23 @@
       transform: translateY(-2px);
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     }
-    
+    /* 1️⃣ Aumenta o respiro entre parágrafos */
+.show-nao-comecou-message {
+  margin-bottom: 18px; /* era 25px — reduz um pouco pra não parecer espaçado demais */
+}
+
+/* 2️⃣ Cria um container para o botão, garantindo centralização */
+.show-nao-comecou-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+/* 3️⃣ Dá um respiro extra abaixo do título */
+.show-nao-comecou-title {
+  margin-bottom: 24px; /* leve aumento para destacar melhor o título */
+}
+
     @media (max-width: 480px) {
       body {
         padding: 0px 10px 5px 10px; /* Reduzindo padding inferior para mobile */
