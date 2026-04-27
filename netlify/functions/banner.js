@@ -1,4 +1,4 @@
-const rateLimit = require('./utils/rateLimit');
+const rateLimit = require('../utils/rateLimit');
 
 exports.handler = async (event, context) => {
 
