@@ -1,6 +1,18 @@
+const rateLimit = require('./utils/rateLimit');
 const fetchPlanilha = require("../utils/fetch-planilhas");
 
 exports.handler = async function(event, context) {
+  // 🔒 RATE LIMIT (colocar aqui)
+  const ip = event.headers['x-forwarded-for'] || 'unknown';
+
+  const allowed = rateLimit(ip, 150, 60000);
+
+  if (!allowed) {
+    return {
+      statusCode: 429,
+      body: JSON.stringify({ error: "Muitas requisições" })
+    };
+  }
   try {
     const dados = await fetchPlanilha();
 
