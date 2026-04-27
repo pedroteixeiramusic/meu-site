@@ -1,8 +1,8 @@
-const rateLimit = require('../utils/rateLimit');
+// /.netlify/functions/enviar-pedido.js
+// Versão que usa Google Apps Script para o contador
 
 exports.handler = async (event, context) => {
-
-  // 🌐 OPTIONS (CORS) primeiro
+  // Handler para OPTIONS (CORS)
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
@@ -14,29 +14,6 @@ exports.handler = async (event, context) => {
       body: ''
     };
   }
-
-  // 🔒 RATE LIMIT depois
-  const ip = event.headers['x-forwarded-for'] || 'unknown';
-
-  const allowed = rateLimit(ip, 10, 60000);
-
-  if (!allowed) {
-    return {
-      statusCode: 429,
-      body: JSON.stringify({ error: "Aguarde antes de enviar outro pedido" })
-    };
-  }
-
-  try {
-    // 👉 seu código de envio continua aqui
-
-  } catch (err) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: "Erro ao enviar pedido" })
-    };
-  }
-};
 
   // Chaves PIX (movidas do frontend)
   const CHAVES_PIX = {
@@ -280,4 +257,3 @@ async function enviarParaTelegramComRetry(texto, token, chatId, maxTentativas = 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
-
