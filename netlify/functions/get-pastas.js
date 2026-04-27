@@ -1,4 +1,4 @@
-const rateLimit = require('./utils/rateLimit');
+const rateLimit = require('../utils/rateLimit');
 const fetchPlanilha = require("../utils/fetch-planilhas");
 
 exports.handler = async function(event, context) {
